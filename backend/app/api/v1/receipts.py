@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import os
+import tempfile
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -11,6 +13,8 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app import supabase_client
+from app.auth import RequestContext, get_current_context
 from app.config import settings
 from app.database import get_db
 from app.models.fraud_flag import FraudFlag
@@ -28,19 +32,25 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/receipts", tags=["receipts"])
 
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".pdf"}
+CONTENT_TYPES = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".pdf": "application/pdf",
+}
 
 
 @router.post("/upload", response_model=ReceiptResponse, status_code=201)
 async def upload_receipt(
     file: UploadFile,
-    employee_id: int | None = None,
+    context: RequestContext = Depends(get_current_context),
     db: AsyncSession = Depends(get_db),
 ) -> Receipt:
-    """Upload a receipt image and create a database record.
+    """Upload a receipt image, store it in Supabase Storage, and create a row
+    scoped to the caller's active business.
 
-    Accepts PNG, JPG, or PDF files up to the configured size limit.
-    The file is saved to the uploads directory with a unique filename.
-    OCR runs automatically, followed by the full fraud detection pipeline.
+    OCR runs automatically on the uploaded file, followed by the full fraud
+    detection pipeline, before the response is returned.
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="No filename provided")
@@ -59,48 +69,79 @@ async def upload_receipt(
             detail=f"File exceeds maximum size of {settings.MAX_FILE_SIZE_MB}MB",
         )
 
-    unique_name = f"{uuid.uuid4().hex}{ext}"
-    file_path = settings.upload_path / unique_name
-    file_path.write_bytes(contents)
-    logger.info("Saved receipt image: %s (%d bytes)", unique_name, len(contents))
+    # Write to a temp file so OCR / perceptual hashing (both sync, file-path based)
+    # can run against it. The durable copy lives in Supabase Storage, not on disk.
+    tmp = tempfile.NamedTemporaryFile(suffix=ext, delete=False)
+    tmp_path = tmp.name
+    tmp.write(contents)
+    tmp.close()
 
-    receipt = Receipt(
-        image_path=str(file_path),
-        employee_id=employee_id,
-        status="pending",
-    )
-    db.add(receipt)
-    await db.flush()
+    try:
+        # OCR and hash run in a thread pool so they don't block the event loop
+        loop = asyncio.get_event_loop()
+        ocr, image_hash = await asyncio.gather(
+            loop.run_in_executor(None, extract_receipt_data, tmp_path),
+            loop.run_in_executor(None, compute_image_hash, tmp_path),
+        )
 
-    # OCR and hash run in a thread pool so they don't block the event loop
-    loop = asyncio.get_event_loop()
-    ocr, image_hash = await asyncio.gather(
-        loop.run_in_executor(None, extract_receipt_data, str(file_path)),
-        loop.run_in_executor(None, compute_image_hash, str(file_path)),
-    )
+        object_path = f"{context.tenant_id}/{uuid.uuid4().hex}{ext}"
+        try:
+            await supabase_client.upload_object(object_path, contents, CONTENT_TYPES[ext])
+        except Exception as exc:  # storage failure — do not create a row
+            logger.error("Storage upload failed for %s: %s", object_path, exc)
+            raise HTTPException(status_code=502, detail="File storage failed") from exc
 
-    receipt.merchant = ocr.merchant
-    receipt.amount = ocr.total_amount
-    receipt.transaction_date = ocr.transaction_date
-    receipt.items = {
-        "line_items": ocr.line_items,
-        "transaction_time": ocr.transaction_time,
-        "raw_text": ocr.raw_text,
-    }
-    receipt.ocr_confidence = ocr.confidence
-    receipt.ocr_method = "tesseract"
-    receipt.analyzed_at = datetime.utcnow()
-    receipt.image_hash = image_hash  # may be None if hashing failed
+        receipt = Receipt(
+            image_path=object_path,
+            tenant_id=context.tenant_id,
+            submitted_by_user_id=context.user_id,
+            status="pending",
+        )
+        receipt.merchant = ocr.merchant
+        receipt.amount = ocr.total_amount
+        receipt.transaction_date = ocr.transaction_date
+        receipt.items = {
+            "line_items": ocr.line_items,
+            "transaction_time": ocr.transaction_time,
+            "raw_text": ocr.raw_text,
+        }
+        receipt.ocr_confidence = ocr.confidence
+        receipt.ocr_method = "tesseract"
+        receipt.analyzed_at = datetime.utcnow()
+        receipt.image_hash = image_hash  # may be None if hashing failed
 
-    await run_fraud_pipeline(receipt, db)
+        db.add(receipt)
+        try:
+            await db.flush()
+        except Exception:
+            try:
+                await supabase_client.delete_object(object_path)
+            except Exception:  # noqa: BLE001 — cleanup is best-effort
+                logger.warning(
+                    "Failed to delete orphaned storage object %s after DB error",
+                    object_path,
+                )
+            raise
 
-    await db.refresh(receipt, attribute_names=["fraud_flags"])
-    return receipt
+        await run_fraud_pipeline(receipt, db)
+        await db.refresh(receipt, attribute_names=["fraud_flags"])
+
+        logger.info(
+            "Created receipt %s for tenant %s (%d bytes)",
+            receipt.id, context.tenant_id, len(contents),
+        )
+        return receipt
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
 
 
 @router.post("/{receipt_id}/analyze", response_model=ReceiptResponse)
 async def analyze_receipt(
     receipt_id: int,
+    context: RequestContext = Depends(get_current_context),
     db: AsyncSession = Depends(get_db),
 ) -> Receipt:
     """Run the full fraud detection pipeline on an existing receipt.
@@ -113,7 +154,7 @@ async def analyze_receipt(
     result = await db.execute(
         select(Receipt)
         .options(selectinload(Receipt.fraud_flags))
-        .where(Receipt.id == receipt_id)
+        .where(Receipt.id == receipt_id, Receipt.tenant_id == context.tenant_id)
     )
     receipt = result.scalar_one_or_none()
     if not receipt:
@@ -140,6 +181,7 @@ async def analyze_receipt(
 async def explain_receipt(
     request: Request,
     receipt_id: int,
+    context: RequestContext = Depends(get_current_context),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Return a plain-English explanation of the fraud risk score via Gemini 2.5 Flash.
@@ -151,7 +193,7 @@ async def explain_receipt(
     result = await db.execute(
         select(Receipt)
         .options(selectinload(Receipt.fraud_flags))
-        .where(Receipt.id == receipt_id)
+        .where(Receipt.id == receipt_id, Receipt.tenant_id == context.tenant_id)
     )
     receipt = result.scalar_one_or_none()
     if not receipt:
@@ -184,6 +226,7 @@ async def explain_receipt(
 async def review_receipt(
     receipt_id: int,
     body: ReviewRequest,
+    context: RequestContext = Depends(get_current_context),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Approve or reject a receipt after human review.
@@ -199,7 +242,7 @@ async def review_receipt(
     result = await db.execute(
         select(Receipt)
         .options(selectinload(Receipt.fraud_flags))
-        .where(Receipt.id == receipt_id)
+        .where(Receipt.id == receipt_id, Receipt.tenant_id == context.tenant_id)
     )
     receipt = result.scalar_one_or_none()
     if not receipt:
@@ -218,12 +261,14 @@ async def review_receipt(
 
     # Find the earliest receipt with the same hash when duplicate flags exist,
     # so reviewers know whether they are looking at the original or a copy.
+    # Scoped to the caller's business — a duplicate chain never crosses tenants.
     original_receipt_id: int | None = None
     has_duplicate_flag = any(f.flag_type == "duplicate" for f in receipt.fraud_flags)
     if has_duplicate_flag and receipt.image_hash:
         earliest = await db.execute(
             select(Receipt.id)
             .where(Receipt.image_hash == receipt.image_hash)
+            .where(Receipt.tenant_id == context.tenant_id)
             .where(Receipt.id != receipt_id)
             .order_by(Receipt.created_at.asc())
             .limit(1)
@@ -245,13 +290,14 @@ async def review_receipt(
 @router.get("/{receipt_id}", response_model=ReceiptResponse)
 async def get_receipt(
     receipt_id: int,
+    context: RequestContext = Depends(get_current_context),
     db: AsyncSession = Depends(get_db),
 ) -> Receipt:
-    """Retrieve a single receipt by ID, including any fraud flags."""
+    """Retrieve a receipt by ID within the caller's active business."""
     result = await db.execute(
         select(Receipt)
         .options(selectinload(Receipt.fraud_flags))
-        .where(Receipt.id == receipt_id)
+        .where(Receipt.id == receipt_id, Receipt.tenant_id == context.tenant_id)
     )
     receipt = result.scalar_one_or_none()
     if not receipt:
@@ -264,18 +310,24 @@ async def list_receipts(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
     status: str | None = None,
+    context: RequestContext = Depends(get_current_context),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """List receipts with pagination and optional status filter."""
-    query = select(Receipt).options(selectinload(Receipt.fraud_flags))
-    count_query = select(func.count(Receipt.id))
+    """List receipts for the caller's active business."""
+    query = (
+        select(Receipt)
+        .options(selectinload(Receipt.fraud_flags))
+        .where(Receipt.tenant_id == context.tenant_id)
+    )
+    count_query = select(func.count(Receipt.id)).where(
+        Receipt.tenant_id == context.tenant_id
+    )
 
     if status:
         query = query.where(Receipt.status == status)
         count_query = count_query.where(Receipt.status == status)
 
     total = (await db.execute(count_query)).scalar_one()
-
     offset = (page - 1) * per_page
     query = query.order_by(Receipt.created_at.desc()).offset(offset).limit(per_page)
     result = await db.execute(query)

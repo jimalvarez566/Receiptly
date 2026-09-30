@@ -27,6 +27,16 @@ class Settings(BaseSettings):
     CLAUDE_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
 
+    # Supabase
+    SUPABASE_URL: str = ""
+    SUPABASE_JWT_SECRET: str = ""
+    SUPABASE_SERVICE_ROLE_KEY: str = ""
+    SUPABASE_STORAGE_BUCKET: str = "receipts"
+
+    # Database — direct connection (port 5432) is used by Alembic;
+    # DATABASE_URL (may be the pooled port 6543) is used by the app runtime.
+    DATABASE_URL_DIRECT: str = ""
+
     # Feature Flags
     ENABLE_GEMINI_VISION: bool = False
     ENABLE_ANOMALY_DETECTION: bool = False

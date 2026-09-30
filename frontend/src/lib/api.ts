@@ -1,5 +1,25 @@
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
+import { supabase } from '@/lib/supabase'
+import { getActiveTenantId } from '@/lib/activeTenant'
+
+async function authHeaders(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token
+  if (!token) return {}
+  const headers: Record<string, string> = { Authorization: `Bearer ${token}` }
+  const tenantId = getActiveTenantId()
+  if (tenantId != null) headers['X-Tenant-ID'] = String(tenantId)
+  return headers
+}
+
+async function handleUnauthorized(res: Response): Promise<void> {
+  if (res.status === 401) {
+    await supabase.auth.signOut()
+    window.location.assign('/login')
+  }
+}
+
 export interface FraudFlag {
   id: number
   flag_type: string
@@ -42,12 +62,35 @@ export interface ReviewResponse extends Receipt {
   original_receipt_id: number | null
 }
 
+export interface Membership {
+  tenant_id: number
+  name: string
+  role: string
+}
+
+export interface MeResponse {
+  user_id: string
+  email: string | null
+  memberships: Membership[]
+}
+
+export interface TenantResponse {
+  id: number
+  name: string
+  created_at: string
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(await authHeaders()),
+      ...init?.headers,
+    },
   })
   if (!res.ok) {
+    await handleUnauthorized(res)
     const text = await res.text()
     throw new Error(`${res.status}: ${text}`)
   }
@@ -55,15 +98,21 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  uploadReceipt: async (file: File, employeeId?: number): Promise<Receipt> => {
+  getMe: (): Promise<MeResponse> => request('/api/v1/auth/me'),
+
+  createTenant: (name: string): Promise<TenantResponse> =>
+    request('/api/v1/tenants', { method: 'POST', body: JSON.stringify({ name }) }),
+
+  uploadReceipt: async (file: File): Promise<Receipt> => {
     const form = new FormData()
     form.append('file', file)
-    if (employeeId != null) form.append('employee_id', String(employeeId))
     const res = await fetch(`${BASE_URL}/api/v1/receipts/upload`, {
       method: 'POST',
       body: form,
+      headers: await authHeaders(),
     })
     if (!res.ok) {
+      await handleUnauthorized(res)
       const text = await res.text()
       throw new Error(`${res.status}: ${text}`)
     }

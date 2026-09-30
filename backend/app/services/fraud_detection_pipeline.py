@@ -32,7 +32,7 @@ async def run_fraud_pipeline(receipt: Receipt, db: AsyncSession) -> list[FraudFl
 
     # Step 1: duplicate detection (skipped when image_hash not yet computed)
     if receipt.image_hash:
-        duplicate_flags = await detect_duplicates(receipt.id, receipt.image_hash, db)
+        duplicate_flags = await detect_duplicates(receipt, db)
         if duplicate_flags:
             logger.warning(
                 "Receipt %d — %d duplicate flag(s) detected",

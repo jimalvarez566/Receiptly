@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
@@ -36,6 +37,8 @@ class ReceiptResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    tenant_id: int
+    submitted_by_user_id: UUID
     employee_id: int | None
     image_path: str
     image_hash: str | None

@@ -8,7 +8,14 @@ from alembic import context
 
 from app.config import settings
 from app.database import Base
-from app.models import Employee, Receipt, FraudFlag, PolicyRule  # noqa: F401
+from app.models import (  # noqa: F401
+    Employee,
+    FraudFlag,
+    Membership,
+    PolicyRule,
+    Receipt,
+    Tenant,
+)
 
 config = context.config
 
@@ -17,7 +24,9 @@ if config.config_file_name is not None:
 
 # Use the DATABASE_URL from our app settings, but swap asyncpg for the
 # sync driver when running offline migrations
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option(
+    "sqlalchemy.url", settings.DATABASE_URL_DIRECT or settings.DATABASE_URL
+)
 
 target_metadata = Base.metadata
 

@@ -47,8 +47,7 @@ def compute_image_hash(file_path: str) -> str | None:
 
 
 async def detect_duplicates(
-    receipt_id: int,
-    image_hash: str,
+    receipt: Receipt,
     db: AsyncSession,
 ) -> list[FraudFlag]:
     """Check whether any existing receipt is a near-duplicate of this one.
@@ -57,8 +56,14 @@ async def detect_duplicates(
     Returns a list of FraudFlag ORM objects (not yet added to the session)
     for each duplicate found.
     """
+    receipt_id = receipt.id
+    image_hash = receipt.image_hash
+    if image_hash is None:
+        return []
+
     result = await db.execute(
         select(Receipt.id, Receipt.image_hash)
+        .where(Receipt.tenant_id == receipt.tenant_id)
         .where(Receipt.image_hash.is_not(None))
         .where(Receipt.id != receipt_id)
     )

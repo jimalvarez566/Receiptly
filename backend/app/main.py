@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from app.api.v1 import receipts
+from app.api.v1 import auth_routes, receipts, tenants
 from app.api.v1.receipts import limiter
 from app.config import settings
 
@@ -32,6 +32,8 @@ app.add_middleware(
 )
 
 app.include_router(receipts.router, prefix="/api/v1")
+app.include_router(tenants.router, prefix="/api/v1")
+app.include_router(auth_routes.router, prefix="/api/v1")
 
 
 @app.get("/health")

@@ -25,7 +25,9 @@ async def validate_receipt(receipt: Receipt, db: AsyncSession) -> list[FraudFlag
     Returns a list of FraudFlag ORM objects (not yet added to the session).
     """
     result = await db.execute(
-        select(PolicyRule).where(PolicyRule.is_active == True)  # noqa: E712
+        select(PolicyRule)
+        .where(PolicyRule.is_active == True)  # noqa: E712
+        .where(PolicyRule.tenant_id == receipt.tenant_id)
     )
     rules = result.scalars().all()
 
@@ -258,10 +260,13 @@ async def _check_short_window_duplicate(
     window_hours: int = int(rule.parameters.get("window_hours", 48))
     tolerance_pct: float = float(rule.parameters.get("amount_tolerance_pct", 10))
 
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=window_hours)
+    # Receipt.created_at is stored as a naive UTC timestamp; keep the cutoff
+    # naive so the comparison is valid for the (TIMESTAMP WITHOUT TIME ZONE) column.
+    cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=window_hours)
 
     result = await db.execute(
         select(Receipt.id, Receipt.merchant, Receipt.amount, Receipt.created_at)
+        .where(Receipt.tenant_id == receipt.tenant_id)
         .where(Receipt.employee_id == receipt.employee_id)
         .where(Receipt.merchant.is_not(None))
         .where(Receipt.amount.is_not(None))

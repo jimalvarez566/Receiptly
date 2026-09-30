@@ -2,7 +2,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import ForeignKey, Index, Numeric, String, Text
+from sqlalchemy import ForeignKey, Index, Numeric, String, Text, Uuid
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -14,6 +14,8 @@ class Receipt(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     employee_id: Mapped[int | None] = mapped_column(ForeignKey("employees.id"))
+    tenant_id: Mapped[int] = mapped_column(ForeignKey("tenants.id"))
+    submitted_by_user_id: Mapped[Uuid] = mapped_column(Uuid)
 
     # File storage
     image_path: Mapped[str] = mapped_column(Text)
@@ -53,4 +55,5 @@ class Receipt(Base):
         Index("idx_receipts_employee", "employee_id"),
         Index("idx_receipts_image_hash", "image_hash"),
         Index("idx_receipts_status", "status"),
+        Index("idx_receipts_tenant", "tenant_id"),
     )

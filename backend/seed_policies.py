@@ -1,10 +1,14 @@
-"""Seed default policy rules into the database.
+"""Seed the default policy rules for one business (tenant).
 
-Run once from the backend/ directory:
-    python seed_policies.py
+Run from the backend/ directory:
+    python seed_policies.py --tenant-id 3
 
-Safe to re-run — existing rules (matched by name) are skipped, not duplicated.
+Safe to re-run — rules already present for that tenant (matched by name)
+are skipped, not duplicated. New businesses created through
+POST /api/v1/tenants are seeded automatically; use this only to backfill
+businesses that predate that behavior.
 """
+import argparse
 import asyncio
 import sys
 
@@ -12,106 +16,61 @@ from sqlalchemy import select
 
 from app.database import async_session
 from app.models.policy_rule import PolicyRule
-
-DEFAULT_RULES = [
-    {
-        "rule_name": "Meal amount limit",
-        "rule_type": "amount_limit",
-        "severity": "medium",
-        "parameters": {"category": "meals", "limit": 75.00},
-    },
-    {
-        "rule_name": "Supplies amount limit",
-        "rule_type": "amount_limit",
-        "severity": "medium",
-        "parameters": {"category": "supplies", "limit": 200.00},
-    },
-    {
-        "rule_name": "No future dates",
-        "rule_type": "future_date",
-        "severity": "high",
-        "parameters": {},
-    },
-    {
-        "rule_name": "Approved expense categories",
-        "rule_type": "vendor_category",
-        "severity": "medium",
-        "parameters": {
-            "allowed_categories": {
-                "meals": [
-                    "restaurant", "cafe", "coffee", "starbucks", "dunkin",
-                    "mcdonald", "burger", "pizza", "food", "grill", "kitchen",
-                    "diner", "bistro", "bakery", "sushi", "taco", "sandwich",
-                    "donut", "bagel", "smoothie", "juice", "bar & grill",
-                ],
-                "travel": [
-                    "hotel", "inn", "suites", "marriott", "hilton", "hyatt",
-                    "sheraton", "westin", "airbnb", "delta", "united",
-                    "american airlines", "southwest", "jetblue", "spirit",
-                    "frontier", "alaska airlines", "uber", "lyft", "taxi",
-                    "hertz", "enterprise", "avis", "budget", "national",
-                    "amtrak", "greyhound", "parking", "toll",
-                ],
-                "supplies": [
-                    "staples", "office depot", "office max", "amazon",
-                    "best buy", "costco", "walmart", "target", "home depot",
-                    "fedex", "ups", "usps", "post office", "print", "ink",
-                    "paper", "notebook", "pen", "binder",
-                ],
-            }
-        },
-    },
-    {
-        "rule_name": "Round number detection",
-        "rule_type": "round_number",
-        "severity": "low",
-        "parameters": {"min_amount": 10.00},
-    },
-    {
-        "rule_name": "Short window duplicate",
-        "rule_type": "short_window_duplicate",
-        "severity": "high",
-        "parameters": {"window_hours": 48, "amount_tolerance_pct": 10},
-    },
-]
+from app.models.tenant import Tenant
+from app.services.policy_defaults import DEFAULT_RULES, build_default_rules
 
 
-async def seed() -> None:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Seed default policy rules for a tenant.")
+    parser.add_argument("--tenant-id", type=int, required=True, help="Target tenant id")
+    return parser.parse_args(argv)
+
+
+async def seed_for_tenant(tenant_id: int) -> tuple[int, int]:
+    """Insert any missing default rules for the tenant. Returns (inserted, skipped)."""
     inserted = 0
     skipped = 0
 
     async with async_session() as db:
-        for rule_def in DEFAULT_RULES:
-            result = await db.execute(
-                select(PolicyRule).where(PolicyRule.rule_name == rule_def["rule_name"])
-            )
-            existing = result.scalar_one_or_none()
+        tenant = (
+            await db.execute(select(Tenant).where(Tenant.id == tenant_id))
+        ).scalar_one_or_none()
+        if tenant is None:
+            raise SystemExit(f"No tenant with id {tenant_id}")
 
-            if existing:
-                print(f"  SKIP   '{rule_def['rule_name']}' (already exists, id={existing.id})")
+        existing_names = set(
+            (
+                await db.execute(
+                    select(PolicyRule.rule_name).where(PolicyRule.tenant_id == tenant_id)
+                )
+            ).scalars().all()
+        )
+
+        for rule in build_default_rules(tenant_id):
+            if rule.rule_name in existing_names:
+                print(f"  SKIP   '{rule.rule_name}' (already exists for tenant {tenant_id})")
                 skipped += 1
             else:
-                rule = PolicyRule(
-                    rule_name=rule_def["rule_name"],
-                    rule_type=rule_def["rule_type"],
-                    severity=rule_def["severity"],
-                    parameters=rule_def["parameters"],
-                    is_active=True,
-                )
                 db.add(rule)
                 await db.flush()
-                print(f"  INSERT '{rule_def['rule_name']}' (id={rule.id})")
+                print(f"  INSERT '{rule.rule_name}' (id={rule.id})")
                 inserted += 1
 
         await db.commit()
 
+    return inserted, skipped
+
+
+def main(argv: list[str] | None = None) -> None:
+    ns = parse_args(argv)
+    print(f"Seeding policy rules for tenant {ns.tenant_id}...\n")
+    inserted, skipped = asyncio.run(seed_for_tenant(ns.tenant_id))
     print(f"\nDone — {inserted} inserted, {skipped} skipped.")
 
 
 if __name__ == "__main__":
-    print("Seeding policy rules...\n")
     try:
-        asyncio.run(seed())
-    except Exception as exc:
-        print(f"\nError: {exc}", file=sys.stderr)
+        main()
+    except SystemExit as exc:
+        print(f"\n{exc}", file=sys.stderr)
         sys.exit(1)

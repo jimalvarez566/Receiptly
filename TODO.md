@@ -58,6 +58,13 @@
 - [ ] Custom ML model training on company data
 - [ ] Notion/Linear export integration
 
+## Next (Phase 2 hardening of multi-tenancy)
+- [ ] Add Row-Level Security policies on tenant tables (defense-in-depth)
+- [ ] Enforce roles (admin vs member) on tenant + policy_rule endpoints
+- [ ] Invitation tokens + emails for users without a Supabase account yet
+- [ ] Serve receipt images to the frontend via short-lived signed URLs
+- [ ] Handle GoTrue admin-list pagination in lookup_user_id_by_email
+
 ## Done ✅
 
 ### Project Setup
@@ -121,3 +128,16 @@
 - [x] Receipts list page — table, status filter, pagination, live data
 - [x] Receipt detail page — fraud score, OCR fields, line items, fraud flags, approve/reject/re-analyze
 - [x] Upload page — drag-and-drop zone, loading state, redirect on success
+
+### Supabase Auth & Multi-Tenancy (`feature/supabase-multitenant-auth`)
+- [x] `Tenant` + `Membership` models; `tenant_id` on receipts / policy_rules / employees
+- [x] Alembic migration `a1b2c3d4e5f6` (chained after `6d34720ba4d7`)
+- [x] Supabase JWT verification (`get_current_user`) + active-tenant resolver (`get_current_context`)
+- [x] Supabase REST client — admin email lookup + Storage upload/delete
+- [x] Tenants + members API; `GET /api/v1/auth/me`
+- [x] Receipts endpoints scoped by tenant; images stored in Supabase Storage
+- [x] All `/api/v1/receipts/*` endpoints (upload, analyze, explain, review, get, list) require JWT + `X-Tenant-ID`
+- [x] Fraud pipeline scoped by tenant (policy rules, pHash + short-window duplicate scans, review duplicate-chain)
+- [x] Default policy rules auto-seeded on business creation; `seed_policies.py --tenant-id` for backfill
+- [x] Backend verifies both HS256 and ES256 (JWKS) Supabase tokens — real user sessions work end to end
+- [x] Frontend: Supabase signup/login, active-business selection + sidebar switcher, auth headers on all API calls

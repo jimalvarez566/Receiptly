@@ -40,7 +40,9 @@ Preprocessing: grayscale → upscale (min 1000px) → autocontrast → sharpen �
 **Policy Validator** (`app/services/policy_validator.py`)
 - Evaluates all active `policy_rules` from the database
 - Five rule types: `amount_limit`, `future_date`, `vendor_category`, `round_number`, `short_window_duplicate`
-- Seed default rules with `python seed_policies.py`
+- Businesses created via `POST /api/v1/tenants` get the six default policy rules
+  automatically; use `python seed_policies.py --tenant-id <id>` only to backfill a
+  business created before that behavior existed.
 
 **Fraud Scorer** (`app/services/fraud_scorer.py`)
 - Combines all flags into a 0–100 risk score
@@ -66,13 +68,43 @@ Dark fintech SaaS interface (Stripe/Linear aesthetic). Run locally with `npm run
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET`   | `/health` | Health check |
-| `POST`  | `/api/v1/receipts/upload` | Upload receipt → OCR + pHash (parallel) → fraud pipeline → store |
-| `POST`  | `/api/v1/receipts/{id}/analyze` | Re-run fraud pipeline on existing receipt (clears old flags and cached explanation) |
-| `POST`  | `/api/v1/receipts/{id}/explain` | Generate AI explanation via Gemini 2.5 Flash; cached after first call. See `GEMINI_EXPLAINER.md`. |
-| `PATCH` | `/api/v1/receipts/{id}/review` | Approve or reject a receipt; returns `original_receipt_id` for duplicates |
-| `GET`   | `/api/v1/receipts/{id}` | Fetch receipt with fraud flags and OCR data |
-| `GET`   | `/api/v1/receipts` | List receipts (paginated, filterable by status) |
+| `GET`    | `/health` | Health check |
+| `POST`   | `/api/v1/receipts/upload` | Upload receipt → OCR + pHash (parallel) → fraud pipeline → store |
+| `POST`   | `/api/v1/receipts/{id}/analyze` | Re-run fraud pipeline on existing receipt (clears old flags and cached explanation) |
+| `POST`   | `/api/v1/receipts/{id}/explain` | Generate AI explanation via Gemini 2.5 Flash; cached after first call. See `GEMINI_EXPLAINER.md`. |
+| `PATCH`  | `/api/v1/receipts/{id}/review` | Approve or reject a receipt; returns `original_receipt_id` for duplicates |
+| `GET`    | `/api/v1/receipts/{id}` | Fetch receipt with fraud flags and OCR data |
+| `GET`    | `/api/v1/receipts` | List receipts (paginated, filterable by status) |
+| `GET`    | `/api/v1/auth/me` | Current user + business memberships |
+| `POST`   | `/api/v1/tenants` | Create a business |
+| `GET`    | `/api/v1/tenants` | List your businesses |
+| `GET`    | `/api/v1/tenants/{id}/members` | List members of a business |
+| `POST`   | `/api/v1/tenants/{id}/members` | Add a member by email |
+| `DELETE` | `/api/v1/tenants/{id}/members/{user_id}` | Remove a member |
+
+Every `/api/v1/receipts/*` route requires a Supabase JWT **and** an `X-Tenant-ID`
+header; `POST` / `GET /api/v1/tenants` require only the JWT.
+
+### Auth & multi-tenancy
+
+- Authentication is handled by Supabase Auth (GoTrue). The frontend logs in
+  against Supabase and sends the resulting JWT as `Authorization: Bearer <token>`
+  on every request.
+- The backend accepts both HS256 tokens (shared JWT secret) and ES256 tokens
+  (verified against the project's JWKS at `/auth/v1/.well-known/jwks.json`,
+  cached in memory). Supabase projects using asymmetric signing keys work
+  without extra configuration.
+- Data requests also carry `X-Tenant-ID: <id>` to select the active business.
+  FastAPI verifies the JWT, checks the caller's membership in that business, and
+  scopes every query by that tenant. `POST /api/v1/tenants` and
+  `GET /api/v1/tenants` are the exceptions — they need only the JWT.
+- Create a business with `POST /api/v1/tenants` (you become its owner). Add
+  teammates with `POST /api/v1/tenants/{id}/members` — they must already have a
+  Supabase account.
+- Receipt images are stored in a Supabase Storage bucket named `receipts`, keyed
+  by `{tenant_id}/{uuid}.{ext}`.
+- Row-Level Security is not yet enabled; tenant isolation is enforced in the
+  application layer. Adding RLS as defense-in-depth is a Phase 2 task.
 
 Interactive docs: `http://localhost:8000/docs`
 
@@ -102,12 +134,25 @@ cp .env.example .env
 # 4. Run migrations
 alembic upgrade head
 
-# 5. Seed default policy rules
-python seed_policies.py
+# 5. Businesses created via POST /api/v1/tenants are auto-seeded with the 6
+#    default policy rules. Only backfill an older business manually:
+# python seed_policies.py --tenant-id <id>
 
 # 6. Start server
 uvicorn app.main:app --reload
 ```
+
+### Environment
+
+Copy `backend/.env.example` to `backend/.env` and fill in, from your Supabase
+project dashboard:
+
+- `DATABASE_URL` — the **pooled** connection string (port 6543), for the app
+- `DATABASE_URL_DIRECT` — the **direct** connection string (port 5432), for Alembic
+- `SUPABASE_URL`, `SUPABASE_JWT_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_STORAGE_BUCKET` (default `receipts` — create this bucket, not public)
+
+Run `cd backend && alembic upgrade head` to apply migrations.
 
 ### Frontend
 
