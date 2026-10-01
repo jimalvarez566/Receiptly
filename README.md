@@ -1,16 +1,33 @@
-# AI-Powered Expense Fraud Detection
+# Receiptly — AI-Powered Expense Fraud Detection
 
-Senior capstone project (CPSC 490/491) — an intelligent system that analyzes employee expense receipts to identify fraudulent submissions using computer vision, NLP, and machine learning.
+Senior capstone project, California State University, Fullerton (CPSC 490 → CPSC 491, advisor Dr. Kanika Sood). Receiptly analyzes employee expense receipts to identify suspicious reimbursement claims before approval, using OCR, perceptual hashing, configurable policy rules, and explainable risk scoring.
+
+**Team:** Jim Alvarez, Evan Miller, Syon Chau
+
+**Status:** Spring 2026 MVP complete. In September 2026 the backend moved to Supabase (Postgres, Auth, Storage) with multi-business tenancy. Fall 2026 (CPSC 491) continues toward a deployable product — see [Fall 2026 Roadmap](#fall-2026-roadmap-cpsc-491).
+
+Receiptly is decision support, not automation: it surfaces evidence and a risk score for a human reviewer. It does not approve reimbursements on its own.
 
 ## Stack
 
-- **Backend:** FastAPI (Python 3.11+), SQLAlchemy async, PostgreSQL
-- **AI/ML:** Tesseract OCR, imagehash (pHash), Gemini 2.5 Flash, scikit-learn (Phase 2)
-- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, React Router
+| Layer | Technology |
+|---|---|
+| Backend API | FastAPI, Python 3.11+, async |
+| Database | Supabase Postgres (pooled connection for the app, direct for migrations), SQLAlchemy async, Alembic |
+| Auth | Supabase Auth — HS256 and ES256/JWKS JWTs, verified in FastAPI |
+| File storage | Supabase Storage, private `receipts` bucket keyed by `{tenant_id}/{uuid}.{ext}` |
+| Receipt extraction | Tesseract OCR + preprocessing (replacement/enhanced engine under evaluation in Fall 2026) |
+| Duplicate detection | `imagehash` perceptual hashing (pHash) |
+| AI explanation | Gemini 2.5 Flash |
+| Anomaly detection | scikit-learn + historical pattern features (Fall 2026) |
+| Web frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, React Router |
+| Mobile | Mobile capture/upload client (Fall 2026) |
+| Testing | pytest (local Postgres test database) + manual end-to-end |
+| Deployment | Render / Vercel or equivalent for the app (Fall 2026); Supabase already hosts data, auth, and files |
 
 ## What's Built
 
-### Backend — Fully Functional Fraud Detection Pipeline
+The Spring 2026 MVP pipeline, plus Supabase multi-tenant auth added in September 2026.
 
 Every receipt upload automatically runs the full pipeline:
 
@@ -51,9 +68,9 @@ Preprocessing: grayscale → upscale (min 1000px) → autocontrast → sharpen �
 
 **Pipeline Orchestrator** (`app/services/fraud_detection_pipeline.py`)
 - Single `run_fraud_pipeline(receipt, db)` used by both upload and analyze endpoints
-- Adding Phase 2 detectors requires one new call here
+- Adding a new detector requires one new call here
 
-### Frontend — Prototype UI ✅
+### Frontend — Reviewer UI
 
 Dark fintech SaaS interface (Stripe/Linear aesthetic). Run locally with `npm run dev` from `frontend/`.
 
@@ -85,7 +102,7 @@ Dark fintech SaaS interface (Stripe/Linear aesthetic). Run locally with `npm run
 Every `/api/v1/receipts/*` route requires a Supabase JWT **and** an `X-Tenant-ID`
 header; `POST` / `GET /api/v1/tenants` require only the JWT.
 
-### Auth & multi-tenancy
+### Auth & multi-tenancy (September 2026)
 
 - Authentication is handled by Supabase Auth (GoTrue). The frontend logs in
   against Supabase and sends the resulting JWT as `Authorization: Bearer <token>`
@@ -109,17 +126,19 @@ header; `POST` / `GET /api/v1/tenants` require only the JWT.
 Interactive docs: `http://localhost:8000/docs`
 
 ### Tests
-53 unit tests covering fraud scorer, all policy rule types, and hash computation — run with `pytest`.
+112 tests covering the fraud scorer, every policy rule type, hash computation, JWT verification (HS256 and ES256), and tenant isolation — run with `python -m pytest` from `backend/`.
+
+The DB-backed tests run against a **local** Postgres database named `fraud_detection_test` (`createdb fraud_detection_test`; override with `TEST_DATABASE_URL`). The suite refuses to run against any database whose name lacks `test`, so it cannot touch the Supabase database.
 
 ## Local Setup
 
-**Prerequisites:** Python 3.11+, PostgreSQL 15, Tesseract OCR, Node.js 18+
+**Prerequisites:** Python 3.11–3.13, Tesseract OCR, Node.js 18+, access to the team's Supabase project, and a local PostgreSQL 15 for running tests
 
 ### Backend
 
 ```bash
-# 1. Create database
-createdb fraud_detection
+# 1. Create the local *test* database (app data lives in Supabase)
+createdb fraud_detection_test
 
 # 2. Install dependencies
 cd backend
@@ -129,7 +148,7 @@ pip install -r requirements.txt
 
 # 3. Configure environment
 cp .env.example .env
-# Edit .env with your database credentials
+# Fill in the Supabase values — see Environment below
 
 # 4. Run migrations
 alembic upgrade head
@@ -159,22 +178,60 @@ Run `cd backend && alembic upgrade head` to apply migrations.
 ```bash
 cd frontend
 npm install
+cp .env.example .env
+# Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (Supabase dashboard → API);
+# VITE_API_URL defaults to http://localhost:8000. The app will not load without them.
 npm run dev
 # Opens at http://localhost:5173
 ```
 
-## What's Next
+## Fall 2026 Roadmap (CPSC 491)
 
-### MVP Polish (before CPSC 490 submission)
-- [ ] Deploy backend to Render, frontend to Vercel
-- [ ] End-to-end test with 20 sample receipts
-- [ ] Accuracy metrics on test dataset
+Full detail in [`CPSC_491_Project_Proposal - Evan Miller, Syon Chau, Jim Alvarez.pdf`](CPSC_491_Project_Proposal%20-%20Evan%20Miller,%20Syon%20Chau,%20Jim%20Alvarez.pdf). The semester extends the MVP rather than rebuilding it, in four phases with weekly checkpoints.
 
-### Phase 2 (CPSC 491)
-- Gemini Vision fallback for low-confidence OCR
-- Isolation Forest anomaly detection
-- Analytics dashboard (employee risk clustering, fraud trends)
-- User authentication and review workflow UI
+### September — Foundation and Core Infrastructure
+- [ ] Audit the current extraction pipeline and benchmark candidate replacement libraries/engines against a fixed baseline receipt set
+- [ ] Integrate the chosen extraction path; improve preprocessing and low-confidence handling
+- [ ] Expand the database schema for scalability, company ownership, and mobile-facing needs
+- [ ] Establish baseline extraction metrics so accuracy changes are measurable
+
+### October — Feature Enhancements and Dashboard
+- [x] User authentication — Supabase Auth with HS256 and ES256/JWKS verification *(landed early, September)*
+- [x] Business-level data separation — every receipt query is tenant-scoped, and each new business is seeded with default policies *(landed early, September)*
+- [ ] Company-specific customization of policies, limits, categories, and reviewer settings (per-business rules exist, but there's no API or UI to edit them yet)
+- [ ] Historical pattern/anomaly detection wired into the fraud-scoring pipeline
+- [ ] Threshold tuning; dashboard statistics, risk summaries, trends, and graphs
+
+### November — Additions and Development
+- [ ] Mobile receipt capture/upload client connected to the existing backend endpoints
+- [ ] CSV and/or PDF export for review reports
+- [ ] Additional model training/tuning and evaluation on diverse receipt samples
+- [ ] Production configuration, services, migrations, and release checklist
+
+### December — Deployment and Monitoring
+- [ ] Deploy and validate end-to-end (web + mobile upload, analysis, review, export)
+- [ ] Monitoring for false positive rate, processing time, database errors, and AI API costs
+- [ ] Final evaluation, documentation, and handoff materials
+
+### Evaluation Metrics
+Precision, recall, F1, false positive rate, extraction/OCR accuracy, and per-receipt processing time, measured against the baseline established in September.
+
+### Ownership
+
+| Member | Primary area |
+|---|---|
+| Jim Alvarez | Receipt intelligence and extraction accuracy; CSV/PDF report export; dashboard (shared with Evan) |
+| Evan Miller | Analytics; advanced fraud and anomaly detection; dashboard (shared with Jim) |
+| Syon Chau | Backend/frontend integration; multi-business operations; user authentication; mobile scanning/upload |
+
+Integration, testing, deployment, and final documentation are collaborative.
+
+### Known Risks
+- Extraction stays inconsistent on blurry, low-contrast, or unusual layouts → benchmark multiple approaches, improve preprocessing, add low-confidence fallback, track accuracy
+- Anomaly detection produces too many false positives → tune on diverse receipts, track FPR, keep signals explainable, preserve human review
+- Mobile integration overruns → ship capture/upload and backend connectivity first, defer UI polish
+- Cloud/AI costs exceed free tiers → cache AI results, monitor usage, rate-limit expensive calls, keep local processing where practical
+- Deployment config/database failures → migrations, env-based config, staged checks, backups, health endpoints
 
 ## Project Docs
 
@@ -184,3 +241,4 @@ npm run dev
 - [`GEMINI_EXPLAINER.md`](GEMINI_EXPLAINER.md) — spec for the "Why this score?" AI explanation feature
 - [`API.md`](API.md) — full API reference
 - [`TODO.md`](TODO.md) — full task breakdown by semester
+- [`CPSC490_Final_Report.pdf`](CPSC490_Final_Report.pdf) — Spring 2026 final report
