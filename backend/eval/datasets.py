@@ -17,6 +17,7 @@ rather than silently returning an empty list.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
@@ -68,6 +69,12 @@ def _parse_amount(value) -> Decimal | None:
         return Decimal(text)
     except (InvalidOperation, ValueError):
         return None
+
+
+def _parse_rupiah(text: str) -> Decimal | None:
+    """CORD amounts are whole rupiah with '.' or ',' as thousands separators."""
+    digits = re.sub(r"[^\d-]", "", text)
+    return Decimal(digits) if re.fullmatch(r"-?\d+", digits) else None
 
 
 def _load_manifest(filename: str, dataset: str) -> list[LabeledReceipt]:
@@ -156,7 +163,9 @@ def load_cord() -> list[LabeledReceipt]:
     Line items come from ``valid_line`` entries whose category is ``menu``;
     we take ``menu.nm`` as the description and ``menu.price`` as the amount
     (the line total, not the unit price). The grand total comes from
-    ``total.total_price``.
+    ``total.total_price``. Words CORD marks ``is_key`` (the printed label, e.g.
+    "TOTAL") are dropped so only the value is kept, and amounts are whole
+    rupiah: "60.000" is sixty thousand.
 
     CORD receipts are Indonesian and often crumpled — a useful stress case for
     detection, but note the merchant field is frequently absent, so merchant
@@ -179,13 +188,15 @@ def load_cord() -> list[LabeledReceipt]:
         items, total = [], None
         for line in gt.get("valid_line", []):
             group = line.get("category", "")
-            text = " ".join(w.get("text", "") for w in line.get("words", [])).strip()
+            text = " ".join(
+                w.get("text", "") for w in line.get("words", []) if not w.get("is_key")
+            ).strip()
             if group == "menu.nm":
                 items.append({"description": text, "amount": None})
             elif group == "menu.price" and items and items[-1]["amount"] is None:
-                items[-1]["amount"] = str(_parse_amount(text) or "")
+                items[-1]["amount"] = str(_parse_rupiah(text) or "")
             elif group == "total.total_price" and total is None:
-                total = _parse_amount(text)
+                total = _parse_rupiah(text)
 
         items = [i for i in items if i["amount"]]
         receipts.append(LabeledReceipt(

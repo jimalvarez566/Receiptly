@@ -1,3 +1,11 @@
+"""Engine-independent pieces of receipt extraction.
+
+Every OCR engine turns an image into lines of text with some geometry; from
+there the field parsing is the same. Keeping it here means an accuracy
+difference between engines in the eval harness comes from recognition and
+layout, not from two diverging copies of the same regexes.
+"""
+
 import logging
 import re
 from dataclasses import dataclass, field
@@ -5,8 +13,7 @@ from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
-import pytesseract
-from PIL import Image, ImageEnhance, ImageOps
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -44,37 +51,15 @@ class OCRResult:
     line_items: list[dict] = field(default_factory=list)
     raw_text: str = ""
     confidence: Decimal = Decimal("0")
+    engine: str | None = None
 
 
-def _preprocess(img: Image.Image) -> Image.Image:
-    """Improve image quality before OCR to reduce recognition errors.
-
-    Steps applied in order:
-    1. Grayscale   — colour is irrelevant for text; reduces noise channels.
-    2. Upscale     — Tesseract accuracy drops below ~200 DPI. Receipts are
-                     narrow, so photos are often under-resolved. We target a
-                     minimum width of 1000 px as a safe proxy for ~300 DPI.
-    3. Autocontrast — stretches the histogram so faint ink becomes darker
-                      and background becomes whiter, without manual tuning.
-    4. Sharpen     — counteracts blur from phone camera photos.
-    5. Binarize    — converts to pure black/white. Eliminates grey gradients
-                     that confuse Tesseract's edge detector.
-    """
-    img = img.convert("L")
-
-    if img.width < 1000:
-        scale = 1000 / img.width
-        img = img.resize(
-            (int(img.width * scale), int(img.height * scale)),
-            Image.LANCZOS,
-        )
-        logger.debug("Upscaled image to %dx%d", img.width, img.height)
-
-    img = ImageOps.autocontrast(img, cutoff=2)
-    img = ImageEnhance.Sharpness(img).enhance(2.0)
-    img = img.point(lambda x: 255 if x > 128 else 0)
-
-    return img
+@dataclass
+class TextLine:
+    """One reconstructed line of receipt text and where it sits on the page."""
+    text: str
+    top: float
+    height: float
 
 
 def _load_images(file_path: Path) -> list[Image.Image]:
@@ -89,84 +74,30 @@ def _load_images(file_path: Path) -> list[Image.Image]:
     return [Image.open(file_path)]
 
 
-def _parse_merchant_by_font_size(img: Image.Image) -> str | None:
-    """Identify the merchant name using Tesseract's line hierarchy + filtering.
+def _pick_merchant(lines: list[TextLine], zone_bottom: float) -> str | None:
+    """Pick the merchant name from positioned lines.
 
     Three signals combined:
     1. Line height  — merchant logos are printed in the largest font on the receipt.
     2. Boilerplate filter — strips URLs, payment info, "thank you" lines, etc.
                            before scoring, so junk lines never win the height contest.
-    3. Receipt zone — merchant names appear in the top 60 % of the receipt;
-                      footer content (totals, card info, barcodes) is excluded.
-
-    image_to_data level meanings: 1=page 2=block 3=paragraph 4=line 5=word
-    Level-4 bounding boxes span the full line, giving reliable height comparisons.
+    3. Receipt zone — merchant names appear near the top; lines starting below
+                      ``zone_bottom`` (footer: totals, card info, barcodes) are excluded.
     """
-    data = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT)
-    n = len(data["text"])
-    img_height = img.height
-
-    # Pass 1: build a map of line key -> {height, top} from level-4 entries
-    line_info: dict[tuple, dict] = {}
-    for i in range(n):
-        if data["level"][i] == 4 and data["height"][i] > 0:
-            key = (data["block_num"][i], data["par_num"][i], data["line_num"][i])
-            line_info[key] = {"height": data["height"][i], "top": data["top"][i]}
-
-    if not line_info:
-        return None
-
-    # Pass 2: collect words (level=5) for each line
-    line_words: dict[tuple, list[dict]] = {}
-    for i in range(n):
-        if data["level"][i] != 5:
-            continue
-        key = (data["block_num"][i], data["par_num"][i], data["line_num"][i])
-        if key not in line_info:
-            continue
-        text = data["text"][i].strip()
-        # conf == -1 are non-word structural elements; keep everything else
-        if not text or int(data["conf"][i]) < 0:
-            continue
-        line_words.setdefault(key, []).append(
-            {"text": text, "left": data["left"][i]}
-        )
-
-    # Pass 3: score each line — filter boilerplate and footer zone, rank by height
-    candidates = []
-    for key, info in line_info.items():
-        words = line_words.get(key)
-        if not words:
-            continue
-
-        line_text = " ".join(
-            w["text"] for w in sorted(words, key=lambda w: w["left"])
-        )
-
-        if _BOILERPLATE.search(line_text):
-            continue
-
-        # Ignore anything in the bottom 40 % of the receipt
-        if info["top"] > img_height * 0.60:
-            continue
-
-        candidates.append({
-            "key": key,
-            "height": info["height"],
-            "top": info["top"],
-            "text": line_text,
-        })
-
+    candidates = [
+        line for line in lines
+        if line.text and not _BOILERPLATE.search(line.text) and line.top <= zone_bottom
+    ]
     if not candidates:
         return None
 
-    max_height = max(c["height"] for c in candidates)
+    max_height = max(c.height for c in candidates)
 
     # Among lines within 15 % of the tallest, pick the topmost
-    tall = [c for c in candidates if c["height"] >= max_height * 0.85]
-    best = min(tall, key=lambda c: c["top"])
+    tall = [c for c in candidates if c.height >= max_height * 0.85]
+    best = min(tall, key=lambda c: c.top)
 
-    return _clean_merchant_text(best["text"])
+    return _clean_merchant_text(best.text)
 
 
 def _clean_merchant_text(text: str) -> str | None:
@@ -289,59 +220,32 @@ def _parse_line_items(lines: list[str]) -> list[dict]:
     return items
 
 
-def extract_receipt_data(file_path: str) -> OCRResult:
-    """Run Tesseract on a receipt file and return structured extracted data.
+def _parse_fields(result: OCRResult, raw_text: str, merchant: str | None) -> OCRResult:
+    """Fill every field of ``result`` from the engine's text and chosen merchant."""
+    result.raw_text = raw_text
+    lines = [l for l in raw_text.splitlines() if l.strip()]
 
-    Populates:
-    - merchant: store / restaurant name
-    - transaction_date: date of purchase
-    - transaction_time: time of purchase (string, e.g. "2:34 PM")
-    - total_amount: grand total as Decimal
-    - line_items: list of {"description": str, "amount": float}
-    - raw_text: full Tesseract output (stored for debugging / future use)
-    - confidence: rough 0-100 score based on how many fields were extracted
-    """
-    result = OCRResult()
+    result.merchant = merchant
+    result.transaction_date, result.transaction_time = _parse_date_time(raw_text)
+    result.total_amount = _parse_total(raw_text)
+    result.line_items = _parse_line_items(lines)
 
-    try:
-        path = Path(file_path)
-        images = _load_images(path)
-        if not images:
-            return result
+    # Confidence: 25 points per successfully extracted field (max 100)
+    fields_found = sum([
+        result.merchant is not None,
+        result.transaction_date is not None,
+        result.total_amount is not None,
+        len(result.line_items) > 0,
+    ])
+    result.confidence = Decimal(str(fields_found * 25))
 
-        images = [_preprocess(img) for img in images]
-
-        # Raw text from all pages (used for date / total / items parsing)
-        raw_text = "\n".join(pytesseract.image_to_string(img) for img in images)
-        result.raw_text = raw_text
-
-        lines = [l for l in raw_text.splitlines() if l.strip()]
-
-        # Merchant: use font-size detection on the first page (where the logo lives)
-        result.merchant = _parse_merchant_by_font_size(images[0])
-        result.transaction_date, result.transaction_time = _parse_date_time(raw_text)
-        result.total_amount = _parse_total(raw_text)
-        result.line_items = _parse_line_items(lines)
-
-        # Confidence: 25 points per successfully extracted field (max 100)
-        fields_found = sum([
-            result.merchant is not None,
-            result.transaction_date is not None,
-            result.total_amount is not None,
-            len(result.line_items) > 0,
-        ])
-        result.confidence = Decimal(str(fields_found * 25))
-
-        logger.info(
-            "OCR complete — merchant=%r date=%s total=%s items=%d confidence=%s",
-            result.merchant,
-            result.transaction_date,
-            result.total_amount,
-            len(result.line_items),
-            result.confidence,
-        )
-
-    except Exception:
-        logger.exception("OCR extraction failed for %s", file_path)
-
+    logger.info(
+        "OCR complete (%s) — merchant=%r date=%s total=%s items=%d confidence=%s",
+        result.engine,
+        result.merchant,
+        result.transaction_date,
+        result.total_amount,
+        len(result.line_items),
+        result.confidence,
+    )
     return result

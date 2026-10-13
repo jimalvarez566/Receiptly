@@ -106,7 +106,7 @@ async def upload_receipt(
             "raw_text": ocr.raw_text,
         }
         receipt.ocr_confidence = ocr.confidence
-        receipt.ocr_method = "tesseract"
+        receipt.ocr_method = ocr.engine
         receipt.analyzed_at = datetime.utcnow()
         receipt.image_hash = image_hash  # may be None if hashing failed
 

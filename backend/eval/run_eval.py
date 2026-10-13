@@ -27,27 +27,12 @@ RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
 
 def get_engine(name: str):
-    """Return a callable ``(file_path: str) -> OCRResult`` for the named engine.
-
-    Written to survive the ocr.py -> ocr/ package refactor: it prefers the
-    package's engine registry and falls back to the current flat module, so the
-    baseline numbers taken today stay reproducible afterwards.
-    """
+    """Return a callable ``(file_path: str) -> OCRResult`` for the named engine."""
+    from app.services.ocr import get_engine as registry
     try:
-        from app.services.ocr import get_engine as registry  # type: ignore[attr-defined]
-    except ImportError:
-        registry = None
-
-    if registry is not None:
         return registry(name)
-
-    if name != "tesseract":
-        raise SystemExit(
-            f"Engine {name!r} is not available yet — app.services.ocr still only "
-            "provides the Tesseract implementation."
-        )
-    from app.services.ocr import extract_receipt_data
-    return extract_receipt_data
+    except ValueError as exc:
+        raise SystemExit(str(exc))
 
 
 def engine_version(name: str) -> str:
@@ -59,7 +44,9 @@ def engine_version(name: str) -> str:
         if name == "paddle":
             import paddleocr
             import paddle
-            return f"paddleocr {paddleocr.__version__} / paddlepaddle {paddle.__version__}"
+            from app.config import settings
+            return (f"paddleocr {paddleocr.__version__} / paddlepaddle {paddle.__version__}"
+                    f" / PP-OCRv6_{settings.OCR_PADDLE_MODEL}")
     except Exception as exc:  # version reporting must never fail a run
         return f"{name} (version unavailable: {exc})"
     return name
@@ -139,6 +126,13 @@ def print_report(result: dict) -> None:
         print(f"\nline items   P={_pct(li['precision'])} R={_pct(li['recall'])} F1={_pct(li['f1'])}"
               f"   ({li['matched']}/{li['gold_items']} gold matched, {li['predicted_items']} predicted)")
         print(f"  amount only  P={_pct(amt['precision'])} R={_pct(amt['recall'])} F1={_pct(amt['f1'])}")
+
+    tr = s["text_recall"]
+    if tr["names"]["gold"] or tr["amounts"]["gold"]:
+        names, amounts = tr["names"], tr["amounts"]
+        print(f"\ntext recall  names {_pct(names['recall'])} ({names['found']}/{names['gold']},"
+              f" mean CER {names['mean_cer'] if names['mean_cer'] is not None else '-'})"
+              f"   amounts {_pct(amounts['recall'])} ({amounts['found']}/{amounts['gold']})")
 
     ak = s["all_key_fields_correct"]
     if ak["scored"]:

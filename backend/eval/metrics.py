@@ -21,7 +21,7 @@ import re
 import unicodedata
 from dataclasses import dataclass, field
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from eval.datasets import REPO_ROOT
 
@@ -188,6 +188,69 @@ def match_line_items(
     return matched
 
 
+_NUMBER = re.compile(r"\d[\d.,]*\d|\d")
+
+
+def substring_distance(pattern: str, text: str) -> int:
+    """Fewest edits that turn ``pattern`` into some substring of ``text``.
+
+    Levenshtein with a free start and end in ``text``, so a gold item name is
+    measured against the best-matching stretch of the OCR output.
+    """
+    prev = [0] * (len(text) + 1)
+    for i, cp in enumerate(pattern, 1):
+        cur = [i]
+        for j, ct in enumerate(text, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (cp != ct)))
+        prev = cur
+    return min(prev)
+
+
+def _numbers_in(text: str) -> set[Decimal]:
+    """Every number in the OCR text, read both as "1,234.56" and as "1.234" (thousands).
+
+    Reading each token both ways lets one rule match US dollars (SROIE, our
+    receipts) and whole rupiah written with '.' separators (CORD).
+    """
+    values = set()
+    for token in _NUMBER.findall(text):
+        for s in (token.replace(",", ""), re.sub(r"[.,]", "", token)):
+            try:
+                values.add(Decimal(s))
+            except InvalidOperation:
+                pass
+    return values
+
+
+def text_recall(raw_text: str, gold) -> dict:
+    """How much of the labelled content appears anywhere in the engine's raw text.
+
+    Independent of the field parsers, so it measures recognition alone — the
+    comparison that still means something where the parsers don't apply, such
+    as CORD's rupiah amounts. Names are the merchant and item descriptions;
+    amounts are item prices and the total.
+    """
+    text = normalize_text(raw_text)
+    names = [normalize_text(n) for n in [gold.merchant] + [i.get("description") for i in gold.line_items or []]]
+    names = [n for n in names if n]
+    amounts = [_to_decimal(i.get("amount")) for i in gold.line_items or []] + [gold.total_amount]
+    amounts = [a for a in amounts if a is not None]
+
+    distances = [substring_distance(n, text) for n in names]
+    found_numbers = _numbers_in(raw_text)
+    return {
+        "names": {
+            "gold": len(names),
+            "found": sum(d == 0 for d in distances),
+            "cer_sum": round(sum(d / len(n) for d, n in zip(distances, names)), 4),
+        },
+        "amounts": {
+            "gold": len(amounts),
+            "found": sum(any(amounts_equal(a, v) for v in found_numbers) for a in amounts),
+        },
+    }
+
+
 def _to_decimal(v) -> Decimal | None:
     if v is None:
         return None
@@ -246,6 +309,8 @@ def score_receipt(predicted, gold) -> dict:
             "matched_amount_only": match_line_items(pred_items, gold.line_items, amount_only=True),
         }
 
+    out["text_recall"] = text_recall(predicted.raw_text or "", gold)
+
     scored = [k for k in ("merchant", "date", "total") if k in out]
     out["all_key_fields_correct"] = bool(scored) and all(out[k]["correct"] for k in scored)
     return out
@@ -258,8 +323,13 @@ def aggregate(receipt_scores: list[dict]) -> dict:
     items_amount_only = ItemTally()
     full_correct = 0
     full_scored = 0
+    recall = {"names": {"gold": 0, "found": 0, "cer_sum": 0.0}, "amounts": {"gold": 0, "found": 0}}
 
     for rs in receipt_scores:
+        for kind, counts in rs.get("text_recall", {}).items():
+            for k, v in counts.items():
+                recall[kind][k] += v
+
         for key, tally in tallies.items():
             if key not in rs:
                 continue
@@ -284,5 +354,15 @@ def aggregate(receipt_scores: list[dict]) -> dict:
             "scored": full_scored,
             "correct": full_correct,
             "rate": round(full_correct / full_scored, 4) if full_scored else None,
+        },
+        "text_recall": {
+            kind: {
+                "gold": c["gold"],
+                "found": c["found"],
+                "recall": round(c["found"] / c["gold"], 4) if c["gold"] else None,
+                **({"mean_cer": round(c["cer_sum"] / c["gold"], 4) if c["gold"] else None}
+                   if "cer_sum" in c else {}),
+            }
+            for kind, c in recall.items()
         },
     }

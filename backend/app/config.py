@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -22,6 +23,11 @@ class Settings(BaseSettings):
     # File Storage
     UPLOAD_DIR: str = "./uploads"
     MAX_FILE_SIZE_MB: int = 10
+
+    # OCR engine for receipt extraction: "tesseract" or "paddle"
+    OCR_ENGINE: Literal["tesseract", "paddle"] = "tesseract"
+    # PP-OCRv6 model size for the paddle engine; small is ~3x faster than medium
+    OCR_PADDLE_MODEL: Literal["tiny", "small", "medium"] = "small"
 
     # AI APIs (Phase 2)
     CLAUDE_API_KEY: str = ""
