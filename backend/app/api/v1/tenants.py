@@ -73,14 +73,21 @@ def _parse_user_id(user_id: str) -> UUID:
         raise HTTPException(status_code=404, detail="Membership not found")
 
 
-async def _count_admins_locked(db: AsyncSession, tenant_id: int) -> int:
-    """Lock the tenant's admin membership rows (FOR UPDATE) and count them."""
+async def _lock_admin_ids(
+    db: AsyncSession, tenant_id: int, context: RequestContext
+) -> set[UUID]:
+    """Lock the tenant's admin membership rows (FOR UPDATE) and return their
+    user ids. The caller's admin role is re-verified against the locked rows,
+    since it may have been revoked after authentication but before the lock."""
     result = await db.execute(
-        select(Membership.id)
+        select(Membership.user_id)
         .where(Membership.tenant_id == tenant_id, Membership.role == "admin")
         .with_for_update()
     )
-    return len(result.all())
+    ids = {row[0] for row in result.all()}
+    if context.user_id not in ids:
+        raise HTTPException(status_code=403, detail="Only admins can manage members")
+    return ids
 
 
 async def _get_membership(
@@ -151,11 +158,11 @@ async def remove_member(
     parsed_user_id = _parse_user_id(user_id)
     # Lock the admin rows before reading the target so concurrent removals or
     # demotions are serialised and the count below is accurate.
-    admin_count = await _count_admins_locked(db, tenant_id)
+    admin_ids = await _lock_admin_ids(db, tenant_id, context)
     row = await _get_membership(db, tenant_id, parsed_user_id)
     if row is None:
         return
-    if row.role == "admin" and admin_count <= 1:
+    if row.role == "admin" and len(admin_ids) <= 1:
         raise HTTPException(status_code=400, detail=LAST_ADMIN_MSG)
     await db.delete(row)
     await db.flush()
@@ -171,11 +178,11 @@ async def update_member_role(
 ) -> Membership:
     await _require_membership(tenant_id, context)
     parsed_user_id = _parse_user_id(user_id)
-    admin_count = await _count_admins_locked(db, tenant_id)
+    admin_ids = await _lock_admin_ids(db, tenant_id, context)
     row = await _get_membership(db, tenant_id, parsed_user_id)
     if row is None:
         raise HTTPException(status_code=404, detail="Membership not found")
-    if row.role == "admin" and body.role != "admin" and admin_count <= 1:
+    if row.role == "admin" and body.role != "admin" and len(admin_ids) <= 1:
         raise HTTPException(status_code=400, detail=LAST_ADMIN_MSG)
     row.role = body.role
     await db.flush()

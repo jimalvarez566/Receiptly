@@ -148,3 +148,90 @@ async def test_patch_unknown_user_404(client, db_session, user_a_id):
     r = await client.patch(f"/api/v1/tenants/{t.id}/members/{uuid.uuid4()}",
                            json={"role": "admin"}, headers=_h(user_a_id, t.id))
     assert (r.status_code, r.json()["detail"]) == (404, "Membership not found")
+
+
+# --- stale-caller and concurrency tests (call endpoint logic directly) ---
+import asyncio
+
+import pytest
+from fastapi import HTTPException
+
+from app.api.v1.tenants import remove_member, update_member_role
+from app.auth import RequestContext
+from app.schemas.tenant import MemberRoleUpdate
+from tests.conftest import TestSessionLocal
+
+
+def _ctx(user_id, tenant_id, role="admin"):
+    return RequestContext(
+        user_id=uuid.UUID(user_id), email=None, tenant_id=tenant_id, role=role
+    )
+
+
+async def test_stale_admin_caller_gets_403_after_lock(db_session, user_a_id, user_b_id):
+    t = await _seed(db_session, user_a_id, extra_admin_ids=[user_b_id])
+    # B's context says admin, but B was demoted in the DB after auth resolved.
+    stale = _ctx(user_b_id, t.id)
+    async with TestSessionLocal() as s:
+        await s.execute(
+            Membership.__table__.update()
+            .where(Membership.user_id == uuid.UUID(user_b_id))
+            .values(role="member")
+        )
+        await s.commit()
+    with pytest.raises(HTTPException) as e:
+        await update_member_role(t.id, user_b_id, MemberRoleUpdate(role="admin"), stale, db_session)
+    assert (e.value.status_code, e.value.detail) == (403, NOT_ADMIN)
+    with pytest.raises(HTTPException) as e:
+        await remove_member(t.id, user_a_id, stale, db_session)
+    assert (e.value.status_code, e.value.detail) == (403, NOT_ADMIN)
+
+
+async def test_concurrent_demotions_serialise_on_admin_lock(db_session, user_a_id, user_b_id):
+    t = await _seed(db_session, user_a_id, extra_admin_ids=[user_b_id])
+    s1 = TestSessionLocal()
+    s2 = TestSessionLocal()
+    try:
+        # s1: A demotes self, lock held (uncommitted).
+        await update_member_role(
+            t.id, user_a_id, MemberRoleUpdate(role="member"), _ctx(user_a_id, t.id), s1
+        )
+        # s2: B demotes self concurrently -> must block on the admin-row lock.
+        task = asyncio.create_task(
+            update_member_role(
+                t.id, user_b_id, MemberRoleUpdate(role="member"), _ctx(user_b_id, t.id), s2
+            )
+        )
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(asyncio.shield(task), timeout=0.5)
+        assert not task.done()
+        await s1.commit()
+        with pytest.raises(HTTPException) as e:
+            await task
+        assert (e.value.status_code, e.value.detail) == (400, LAST_ADMIN)
+    finally:
+        await s1.close()
+        await s2.close()
+    assert await _role(db_session, t.id, user_b_id) == "admin"
+
+
+async def test_concurrent_demotion_of_caller_yields_403(db_session, user_a_id, user_b_id):
+    t = await _seed(db_session, user_a_id, extra_admin_ids=[user_b_id])
+    s1 = TestSessionLocal()
+    s2 = TestSessionLocal()
+    try:
+        # s1: A demotes B (uncommitted). s2: B (still admin per auth) removes A.
+        await update_member_role(
+            t.id, user_b_id, MemberRoleUpdate(role="member"), _ctx(user_a_id, t.id), s1
+        )
+        task = asyncio.create_task(remove_member(t.id, user_a_id, _ctx(user_b_id, t.id), s2))
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(asyncio.shield(task), timeout=0.5)
+        await s1.commit()
+        with pytest.raises(HTTPException) as e:
+            await task
+        assert (e.value.status_code, e.value.detail) == (403, NOT_ADMIN)
+    finally:
+        await s1.close()
+        await s2.close()
+    assert await _role(db_session, t.id, user_a_id) == "admin"
