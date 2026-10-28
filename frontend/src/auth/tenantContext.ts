@@ -16,3 +16,9 @@ export function useTenant(): TenantContextValue {
   if (!ctx) throw new Error('useTenant must be used within <TenantProvider>')
   return ctx
 }
+
+export function useRole(): { role: 'admin' | 'member' | null; isAdmin: boolean } {
+  const { memberships, activeTenantId } = useTenant()
+  const role = memberships.find((m) => m.tenant_id === activeTenantId)?.role ?? null
+  return { role, isAdmin: role === 'admin' }
+}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '@/lib/api'
+import { useRole } from '@/auth/tenantContext'
 import type { Receipt } from '@/lib/api'
 import { RiskBadge } from '@/components/RiskBadge'
 import { StatusBadge } from '@/components/StatusBadge'
@@ -18,6 +19,7 @@ function fmtDatetime(d: string | null) {
 type ActionState = 'idle' | 'loading' | 'error'
 
 export function ReceiptDetail() {
+  const { isAdmin } = useRole()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
@@ -265,7 +267,7 @@ export function ReceiptDetail() {
 
       {/* Actions */}
       <div className="flex items-center gap-2">
-        {canReview && (
+        {isAdmin && canReview && (
           <>
             <ActionButton onClick={approve} disabled={isBusy} variant="approve">
               Approve
@@ -276,9 +278,11 @@ export function ReceiptDetail() {
             <span className="text-[#262626]">|</span>
           </>
         )}
-        <ActionButton onClick={reanalyze} disabled={isBusy} variant="neutral">
-          {actionState === 'loading' ? 'Analyzing…' : 'Re-analyze'}
-        </ActionButton>
+        {isAdmin && (
+          <ActionButton onClick={reanalyze} disabled={isBusy} variant="neutral">
+            {actionState === 'loading' ? 'Analyzing…' : 'Re-analyze'}
+          </ActionButton>
+        )}
       </div>
 
       {actionError && (
