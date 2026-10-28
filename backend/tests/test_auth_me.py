@@ -11,7 +11,7 @@ async def test_me_lists_memberships(client, db_session, user_a_id):
     db_session.add_all([t1, t2])
     await db_session.flush()
     db_session.add_all([
-        Membership(tenant_id=t1.id, user_id=uid, role="owner"),
+        Membership(tenant_id=t1.id, user_id=uid, role="admin"),
         Membership(tenant_id=t2.id, user_id=uid, role="member"),
     ])
     await db_session.commit()
@@ -24,7 +24,7 @@ async def test_me_lists_memberships(client, db_session, user_a_id):
     body = resp.json()
     assert body["email"] == "a@b.com"
     got = {(m["name"], m["role"]) for m in body["memberships"]}
-    assert got == {("AceCo", "owner"), ("BeeCo", "member")}
+    assert got == {("AceCo", "admin"), ("BeeCo", "member")}
 
 
 async def test_me_requires_auth(client):

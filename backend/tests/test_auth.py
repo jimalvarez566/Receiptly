@@ -92,7 +92,7 @@ async def test_context_resolves_membership(ctx_client, db_session):
     tenant = Tenant(name="Acme", created_by_user_id=uid)
     db_session.add(tenant)
     await db_session.flush()
-    db_session.add(Membership(tenant_id=tenant.id, user_id=uid, role="owner"))
+    db_session.add(Membership(tenant_id=tenant.id, user_id=uid, role="admin"))
     await db_session.commit()
 
     token = make_token(str(uid))
@@ -101,7 +101,7 @@ async def test_context_resolves_membership(ctx_client, db_session):
         headers={"Authorization": f"Bearer {token}", "X-Tenant-ID": str(tenant.id)},
     )
     assert resp.status_code == 200
-    assert resp.json() == {"user_id": str(uid), "tenant_id": tenant.id, "role": "owner"}
+    assert resp.json() == {"user_id": str(uid), "tenant_id": tenant.id, "role": "admin"}
 
 
 async def test_context_missing_header_is_400(ctx_client):
@@ -115,7 +115,7 @@ async def test_context_non_member_is_403(ctx_client, db_session):
     tenant = Tenant(name="Acme", created_by_user_id=owner)
     db_session.add(tenant)
     await db_session.flush()
-    db_session.add(Membership(tenant_id=tenant.id, user_id=owner, role="owner"))
+    db_session.add(Membership(tenant_id=tenant.id, user_id=owner, role="admin"))
     await db_session.commit()
 
     outsider = make_token(str(_uuid.uuid4()))

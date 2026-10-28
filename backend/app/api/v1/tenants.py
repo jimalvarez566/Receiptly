@@ -28,7 +28,7 @@ async def create_tenant(
     tenant = Tenant(name=body.name, created_by_user_id=user.user_id)
     db.add(tenant)
     await db.flush()
-    db.add(Membership(tenant_id=tenant.id, user_id=user.user_id, role="owner"))
+    db.add(Membership(tenant_id=tenant.id, user_id=user.user_id, role="admin"))
     db.add_all(build_default_rules(tenant.id))
     await db.flush()
     return tenant
