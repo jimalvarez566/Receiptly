@@ -239,3 +239,56 @@ async def test_member_upload_still_works_and_response_is_present_redacted(
     assert body["submitted_by_user_id"] == user_b_id
     assert len(body["fraud_flags"]) == 1
     assert "duplicate_receipt_id" not in body["fraud_flags"][0]["details"]
+
+
+async def _dup_flag_desc(db_session, receipt, target_id):
+    f = FraudFlag(
+        receipt_id=receipt.id, flag_type="duplicate", severity="high",
+        description=f"Receipt image is nearly identical to receipt #{target_id} (similarity distance: 0/64).",
+        details={"duplicate_receipt_id": target_id, "hash_distance": 0},
+        confidence_score=100,
+    )
+    db_session.add(f)
+    await db_session.commit()
+    return f
+
+
+async def test_member_duplicate_description_redacted_for_colleague_receipt(
+    client, db_session, user_a_id, user_b_id
+):
+    t = await _seed_team(db_session, user_a_id, user_b_id)
+    colleague = await _receipt(db_session, t, user_a_id)
+    mine = await _receipt(db_session, t, user_b_id)
+    await _dup_flag_desc(db_session, mine, colleague.id)
+    resp = await client.get(f"/api/v1/receipts/{mine.id}", headers=_h(user_b_id, t.id))
+    desc = resp.json()["fraud_flags"][0]["description"]
+    assert f"#{colleague.id}" not in desc
+    assert "another receipt in your business" in desc
+
+
+async def test_member_duplicate_description_kept_for_own_receipt(
+    client, db_session, user_a_id, user_b_id
+):
+    t = await _seed_team(db_session, user_a_id, user_b_id)
+    first = await _receipt(db_session, t, user_b_id)
+    second = await _receipt(db_session, t, user_b_id)
+    f = await _dup_flag_desc(db_session, second, first.id)
+    expected = f.description
+    resp = await client.get(f"/api/v1/receipts/{second.id}", headers=_h(user_b_id, t.id))
+    assert resp.json()["fraud_flags"][0]["description"] == expected
+
+
+async def test_description_redaction_does_not_modify_database_row(
+    client, db_session, user_a_id, user_b_id
+):
+    t = await _seed_team(db_session, user_a_id, user_b_id)
+    colleague = await _receipt(db_session, t, user_a_id)
+    mine = await _receipt(db_session, t, user_b_id)
+    f = await _dup_flag_desc(db_session, mine, colleague.id)
+    flag_id, original, cid = f.id, f.description, colleague.id
+    resp = await client.get(f"/api/v1/receipts/{mine.id}", headers=_h(user_b_id, t.id))
+    assert f"#{cid}" not in resp.json()["fraud_flags"][0]["description"]
+    await db_session.commit()
+    db_session.expire_all()
+    row = (await db_session.execute(select(FraudFlag).where(FraudFlag.id == flag_id))).scalar_one()
+    assert row.description == original

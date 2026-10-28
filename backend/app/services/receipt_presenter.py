@@ -50,6 +50,11 @@ async def present_receipts(
     for resp in responses:
         for flag in resp.fraud_flags:
             if flag.details and _KEY in flag.details:
-                if _as_int(flag.details[_KEY]) not in own:
+                target = _as_int(flag.details[_KEY])
+                if target not in own:
                     flag.details = {k: v for k, v in flag.details.items() if k != _KEY}
+                    if flag.description and target is not None:
+                        flag.description = flag.description.replace(
+                            f"receipt #{target}", "another receipt in your business"
+                        )
     return responses
