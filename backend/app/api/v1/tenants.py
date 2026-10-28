@@ -5,12 +5,19 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import supabase_client
-from app.auth import CurrentUser, RequestContext, get_current_context, get_current_user
+from app.auth import (
+    CurrentUser,
+    RequestContext,
+    get_current_context,
+    get_current_user,
+    require_admin,
+)
 from app.database import get_db
 from app.models import Membership, Tenant
 from app.schemas.tenant import (
     MemberAddRequest,
     MemberResponse,
+    MemberRoleUpdate,
     TenantCreate,
     TenantResponse,
 )
@@ -56,6 +63,38 @@ async def _require_membership(tenant_id: int, context: RequestContext) -> None:
         )
 
 
+LAST_ADMIN_MSG = "A business needs at least one admin"
+
+
+def _parse_user_id(user_id: str) -> UUID:
+    try:
+        return UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Membership not found")
+
+
+async def _count_admins_locked(db: AsyncSession, tenant_id: int) -> int:
+    """Lock the tenant's admin membership rows (FOR UPDATE) and count them."""
+    result = await db.execute(
+        select(Membership.id)
+        .where(Membership.tenant_id == tenant_id, Membership.role == "admin")
+        .with_for_update()
+    )
+    return len(result.all())
+
+
+async def _get_membership(
+    db: AsyncSession, tenant_id: int, user_id: UUID
+) -> Membership | None:
+    return (
+        await db.execute(
+            select(Membership)
+            .where(Membership.tenant_id == tenant_id, Membership.user_id == user_id)
+            .execution_options(populate_existing=True)
+        )
+    ).scalar_one_or_none()
+
+
 @router.get("/{tenant_id}/members", response_model=list[MemberResponse])
 async def list_members(
     tenant_id: int,
@@ -74,7 +113,7 @@ async def add_member(
     tenant_id: int,
     body: MemberAddRequest,
     response: Response,
-    context: RequestContext = Depends(get_current_context),
+    context: RequestContext = Depends(require_admin("manage members")),
     db: AsyncSession = Depends(get_db),
 ) -> Membership:
     await _require_membership(tenant_id, context)
@@ -105,22 +144,39 @@ async def add_member(
 async def remove_member(
     tenant_id: int,
     user_id: str,
-    context: RequestContext = Depends(get_current_context),
+    context: RequestContext = Depends(require_admin("manage members")),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     await _require_membership(tenant_id, context)
-    try:
-        parsed_user_id = UUID(user_id)
-    except ValueError:
+    parsed_user_id = _parse_user_id(user_id)
+    # Lock the admin rows before reading the target so concurrent removals or
+    # demotions are serialised and the count below is accurate.
+    admin_count = await _count_admins_locked(db, tenant_id)
+    row = await _get_membership(db, tenant_id, parsed_user_id)
+    if row is None:
+        return
+    if row.role == "admin" and admin_count <= 1:
+        raise HTTPException(status_code=400, detail=LAST_ADMIN_MSG)
+    await db.delete(row)
+    await db.flush()
+
+
+@router.patch("/{tenant_id}/members/{user_id}", response_model=MemberResponse)
+async def update_member_role(
+    tenant_id: int,
+    user_id: str,
+    body: MemberRoleUpdate,
+    context: RequestContext = Depends(require_admin("manage members")),
+    db: AsyncSession = Depends(get_db),
+) -> Membership:
+    await _require_membership(tenant_id, context)
+    parsed_user_id = _parse_user_id(user_id)
+    admin_count = await _count_admins_locked(db, tenant_id)
+    row = await _get_membership(db, tenant_id, parsed_user_id)
+    if row is None:
         raise HTTPException(status_code=404, detail="Membership not found")
-    row = (
-        await db.execute(
-            select(Membership).where(
-                Membership.tenant_id == tenant_id,
-                Membership.user_id == parsed_user_id,
-            )
-        )
-    ).scalar_one_or_none()
-    if row is not None:
-        await db.delete(row)
-        await db.flush()
+    if row.role == "admin" and body.role != "admin" and admin_count <= 1:
+        raise HTTPException(status_code=400, detail=LAST_ADMIN_MSG)
+    row.role = body.role
+    await db.flush()
+    return row

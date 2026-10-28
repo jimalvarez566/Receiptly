@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
@@ -23,6 +24,10 @@ class MemberAddRequest(BaseModel):
     @classmethod
     def _lower(cls, v: str) -> str:
         return v.lower()
+
+
+class MemberRoleUpdate(BaseModel):
+    role: Literal["admin", "member"]
 
 
 class MembershipInfo(BaseModel):
