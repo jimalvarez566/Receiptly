@@ -1,7 +1,9 @@
 import asyncio
 import logging
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 import httpx
@@ -15,7 +17,13 @@ from app.config import settings
 from app.database import get_db
 from app.models import Membership
 
+if TYPE_CHECKING:
+    from app.models.receipt import Receipt
+
 logger = logging.getLogger(__name__)
+
+ROLE_ADMIN = "admin"
+ROLE_MEMBER = "member"
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -183,3 +191,24 @@ async def get_current_context(
         tenant_id=tenant_id,
         role=membership.role,
     )
+
+
+def require_admin(action: str) -> Callable[..., Awaitable[RequestContext]]:
+    """Dependency factory: like get_current_context, but 403s non-admins."""
+
+    async def _dep(
+        context: RequestContext = Depends(get_current_context),
+    ) -> RequestContext:
+        if context.role != ROLE_ADMIN:
+            raise HTTPException(status_code=403, detail=f"Only admins can {action}")
+        return context
+
+    return _dep
+
+
+def can_view_receipt(context: RequestContext, receipt: "Receipt") -> bool:
+    """Admins see every receipt; members only their own. Caller has already
+    confirmed the receipt belongs to the context's tenant."""
+    if context.role == ROLE_ADMIN:
+        return True
+    return receipt.submitted_by_user_id == context.user_id
