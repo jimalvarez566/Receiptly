@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app import supabase_client
-from app.auth import RequestContext, get_current_context
+from app.auth import ROLE_ADMIN, RequestContext, get_current_context, can_view_receipt, require_admin
 from app.config import settings
 from app.database import get_db
 from app.models.fraud_flag import FraudFlag
@@ -24,12 +24,29 @@ from app.services.duplicate_detector import compute_image_hash
 from app.services.fraud_detection_pipeline import run_fraud_pipeline
 from app.services.gemini_explainer import call_gemini
 from app.services.ocr import extract_receipt_data
+from app.services.receipt_presenter import present_receipts
 
 limiter = Limiter(key_func=get_remote_address)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/receipts", tags=["receipts"])
+
+
+async def _get_receipt_for(context: RequestContext, receipt_id: int, db: AsyncSession) -> Receipt:
+    """Load a receipt in the caller's business and enforce role visibility."""
+    result = await db.execute(
+        select(Receipt)
+        .options(selectinload(Receipt.fraud_flags))
+        .where(Receipt.id == receipt_id, Receipt.tenant_id == context.tenant_id)
+    )
+    receipt = result.scalar_one_or_none()
+    if not receipt:
+        raise HTTPException(status_code=404, detail="Receipt not found")
+    if not can_view_receipt(context, receipt):
+        raise HTTPException(status_code=403, detail="You can't view this receipt")
+    return receipt
+
 
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".pdf"}
 CONTENT_TYPES = {
@@ -45,7 +62,7 @@ async def upload_receipt(
     file: UploadFile,
     context: RequestContext = Depends(get_current_context),
     db: AsyncSession = Depends(get_db),
-) -> Receipt:
+) -> ReceiptResponse:
     """Upload a receipt image, store it in Supabase Storage, and create a row
     scoped to the caller's active business.
 
@@ -130,7 +147,7 @@ async def upload_receipt(
             "Created receipt %s for tenant %s (%d bytes)",
             receipt.id, context.tenant_id, len(contents),
         )
-        return receipt
+        return (await present_receipts([receipt], context, db))[0]
     finally:
         try:
             os.unlink(tmp_path)
@@ -141,7 +158,7 @@ async def upload_receipt(
 @router.post("/{receipt_id}/analyze", response_model=ReceiptResponse)
 async def analyze_receipt(
     receipt_id: int,
-    context: RequestContext = Depends(get_current_context),
+    context: RequestContext = Depends(require_admin("re-run fraud analysis")),
     db: AsyncSession = Depends(get_db),
 ) -> Receipt:
     """Run the full fraud detection pipeline on an existing receipt.
@@ -190,14 +207,7 @@ async def explain_receipt(
     value without calling Gemini again. Cleared when the receipt is re-analyzed.
     Rate limited to 5 requests per day per IP.
     """
-    result = await db.execute(
-        select(Receipt)
-        .options(selectinload(Receipt.fraud_flags))
-        .where(Receipt.id == receipt_id, Receipt.tenant_id == context.tenant_id)
-    )
-    receipt = result.scalar_one_or_none()
-    if not receipt:
-        raise HTTPException(status_code=404, detail="Receipt not found")
+    receipt = await _get_receipt_for(context, receipt_id, db)
 
     if not receipt.fraud_flags:
         raise HTTPException(status_code=400, detail="Receipt has no fraud flags — nothing to explain")
@@ -226,7 +236,7 @@ async def explain_receipt(
 async def review_receipt(
     receipt_id: int,
     body: ReviewRequest,
-    context: RequestContext = Depends(get_current_context),
+    context: RequestContext = Depends(require_admin("approve or reject receipts")),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Approve or reject a receipt after human review.
@@ -292,17 +302,10 @@ async def get_receipt(
     receipt_id: int,
     context: RequestContext = Depends(get_current_context),
     db: AsyncSession = Depends(get_db),
-) -> Receipt:
+) -> ReceiptResponse:
     """Retrieve a receipt by ID within the caller's active business."""
-    result = await db.execute(
-        select(Receipt)
-        .options(selectinload(Receipt.fraud_flags))
-        .where(Receipt.id == receipt_id, Receipt.tenant_id == context.tenant_id)
-    )
-    receipt = result.scalar_one_or_none()
-    if not receipt:
-        raise HTTPException(status_code=404, detail="Receipt not found")
-    return receipt
+    receipt = await _get_receipt_for(context, receipt_id, db)
+    return (await present_receipts([receipt], context, db))[0]
 
 
 @router.get("", response_model=ReceiptListResponse)
@@ -323,6 +326,10 @@ async def list_receipts(
         Receipt.tenant_id == context.tenant_id
     )
 
+    if context.role != ROLE_ADMIN:
+        query = query.where(Receipt.submitted_by_user_id == context.user_id)
+        count_query = count_query.where(Receipt.submitted_by_user_id == context.user_id)
+
     if status:
         query = query.where(Receipt.status == status)
         count_query = count_query.where(Receipt.status == status)
@@ -334,7 +341,7 @@ async def list_receipts(
     receipts = list(result.scalars().all())
 
     return {
-        "receipts": receipts,
+        "receipts": await present_receipts(receipts, context, db),
         "total": total,
         "page": page,
         "per_page": per_page,
