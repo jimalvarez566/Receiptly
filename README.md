@@ -16,7 +16,7 @@ Receiptly is decision support, not automation: it surfaces evidence and a risk s
 | Database | Supabase Postgres (pooled connection for the app, direct for migrations), SQLAlchemy async, Alembic |
 | Auth | Supabase Auth — HS256 and ES256/JWKS JWTs, verified in FastAPI |
 | File storage | Supabase Storage, private `receipts` bucket keyed by `{tenant_id}/{uuid}.{ext}` |
-| Receipt extraction | Tesseract OCR + preprocessing (replacement/enhanced engine under evaluation in Fall 2026) |
+| Receipt extraction | PaddleOCR (PP-OCRv6) + geometry-aware field parsing; chosen over Tesseract by the eval harness in `backend/eval/` |
 | Duplicate detection | `imagehash` perceptual hashing (pHash) |
 | AI explanation | Gemini 2.5 Flash |
 | Anomaly detection | scikit-learn + historical pattern features (Fall 2026) |
@@ -35,17 +35,17 @@ Every receipt upload automatically runs the full pipeline:
 Upload → OCR + pHash (parallel) → Duplicate Detection → Policy Validation → Fraud Scoring → Response
 ```
 
-### OCR Service (`app/services/ocr.py`)
-Extracts structured data from receipt images using Tesseract with a preprocessing pipeline:
+### OCR Service (`app/services/ocr/`)
+Extracts structured data from receipt images using PaddleOCR. Paddle returns separate text boxes, so `paddle.py` first rebuilds printed lines from box geometry (undoing the page's tilt so an item's name and price on a slanted phone photo land on one line); `common.py` then parses the fields:
 
 | Field | Method |
 |---|---|
-| Merchant name | Largest-font line via Tesseract level-4 bounding boxes, boilerplate-filtered, top-60% zone |
+| Merchant name | Tallest reconstructed line, boilerplate-filtered, in the top 60% of the receipt's text |
 | Transaction date | Regex across MM/DD/YYYY, YYYY-MM-DD, and month-name formats |
 | Total amount | Keyword-anchored search (`total`, `amount due`), falls back to largest dollar figure |
 | Line items | Per-line regex, stops at first footer keyword (subtotal/tax/total) |
 
-Preprocessing: grayscale → upscale (min 1000px) → autocontrast → sharpen → binarize.
+Model size is set by `OCR_PADDLE_MODEL` (`tiny` / `small` / `medium`, default `small`). Models download on first use and load on the first upload, which takes a few seconds.
 
 ### Fraud Detection Services
 
@@ -132,7 +132,7 @@ The DB-backed tests run against a **local** Postgres database named `fraud_detec
 
 ## Local Setup
 
-**Prerequisites:** Python 3.11–3.13, Tesseract OCR, Node.js 18+, access to the team's Supabase project, and a local PostgreSQL 15 for running tests
+**Prerequisites:** Python 3.11–3.13, Node.js 18+, access to the team's Supabase project, and a local PostgreSQL 15 for running tests
 
 ### Backend
 

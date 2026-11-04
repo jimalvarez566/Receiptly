@@ -1,13 +1,13 @@
-"""Run an OCR engine over a labelled set and report field-level accuracy.
+"""Run receipt OCR over a labelled set and report field-level accuracy.
 
-    python -m eval.run_eval --engine tesseract --dataset own
-    python -m eval.run_eval --engine paddle --dataset own --out eval/results/paddle-own.json
-    python -m eval.run_eval --engine tesseract --dataset sroie --limit 200
+    python -m eval.run_eval --dataset own
+    OCR_PADDLE_MODEL=medium python -m eval.run_eval --dataset own --out eval/results/paddle-own-medium.json
+    python -m eval.run_eval --dataset sroie --limit 200
 
 Run from the ``backend/`` directory. Results are written as JSON so a run can
 be committed and diffed against a later one — the point of this harness is that
-"PaddleOCR is more accurate" becomes a number with a date on it rather than an
-impression.
+"extraction got more accurate" becomes a number with a date on it rather than
+an impression.
 """
 
 from __future__ import annotations
@@ -25,47 +25,37 @@ from eval import datasets, metrics
 
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
-
-def get_engine(name: str):
-    """Return a callable ``(file_path: str) -> OCRResult`` for the named engine."""
-    from app.services.ocr import get_engine as registry
-    try:
-        return registry(name)
-    except ValueError as exc:
-        raise SystemExit(str(exc))
+# Recorded in every result file and used in its default name
+ENGINE = "paddle"
 
 
-def engine_version(name: str) -> str:
+def engine_version() -> str:
     """Record what actually produced these numbers, for the committed result file."""
     try:
-        if name == "tesseract":
-            import pytesseract
-            return f"tesseract {pytesseract.get_tesseract_version()}"
-        if name == "paddle":
-            import paddleocr
-            import paddle
-            from app.config import settings
-            return (f"paddleocr {paddleocr.__version__} / paddlepaddle {paddle.__version__}"
-                    f" / PP-OCRv6_{settings.OCR_PADDLE_MODEL}")
+        import paddleocr
+        import paddle
+        from app.config import settings
+        return (f"paddleocr {paddleocr.__version__} / paddlepaddle {paddle.__version__}"
+                f" / PP-OCRv6_{settings.OCR_PADDLE_MODEL}")
     except Exception as exc:  # version reporting must never fail a run
-        return f"{name} (version unavailable: {exc})"
-    return name
+        return f"{ENGINE} (version unavailable: {exc})"
 
 
-def run(engine_name: str, dataset_name: str, limit: int | None) -> dict:
-    engine = get_engine(engine_name)
+def run(dataset_name: str, limit: int | None) -> dict:
+    from app.services.ocr import extract_receipt_data
+
     receipts = datasets.load(dataset_name)
     if limit:
         receipts = receipts[:limit]
     if not receipts:
         raise SystemExit(f"Dataset {dataset_name!r} is empty.")
 
-    print(f"Running {engine_name} over {len(receipts)} receipt(s) from {dataset_name}...\n")
+    print(f"Running {ENGINE} over {len(receipts)} receipt(s) from {dataset_name}...\n")
 
     scores, timings = [], []
     for i, gold in enumerate(receipts, 1):
         t0 = time.perf_counter()
-        predicted = engine(str(gold.file))
+        predicted = extract_receipt_data(str(gold.file))
         elapsed = time.perf_counter() - t0
         timings.append(elapsed)
 
@@ -87,8 +77,8 @@ def run(engine_name: str, dataset_name: str, limit: int | None) -> dict:
         by_source.setdefault(s["source_type"], []).append(s)
 
     return {
-        "engine": engine_name,
-        "engine_version": engine_version(engine_name),
+        "engine": ENGINE,
+        "engine_version": engine_version(),
         "dataset": dataset_name,
         "run_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "python": platform.python_version(),
@@ -154,18 +144,17 @@ def _pct(v) -> str:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--engine", default="tesseract", help="tesseract | paddle")
     parser.add_argument("--dataset", default="own", help=f"{' | '.join(datasets.LOADERS)}")
     parser.add_argument("--limit", type=int, help="only the first N receipts")
-    parser.add_argument("--out", type=Path, help="write JSON here (default: eval/results/<engine>-<dataset>.json)")
+    parser.add_argument("--out", type=Path, help=f"write JSON here (default: eval/results/{ENGINE}-<dataset>.json)")
     parser.add_argument("--no-save", action="store_true", help="print only, write nothing")
     args = parser.parse_args(argv)
 
-    result = run(args.engine, args.dataset, args.limit)
+    result = run(args.dataset, args.limit)
     print_report(result)
 
     if not args.no_save:
-        out = args.out or RESULTS_DIR / f"{args.engine}-{args.dataset}.json"
+        out = args.out or RESULTS_DIR / f"{ENGINE}-{args.dataset}.json"
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(result, indent=2, default=str))
         print(f"\nwrote {out}")

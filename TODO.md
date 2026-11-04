@@ -18,7 +18,7 @@
 ## Semester 2 - Phase 2 Features (CPSC 491)
 
 ### Month 1: Advanced Detection
-- [ ] Integrate Gemini Vision API for image analysis (OCR fallback when Tesseract confidence < 70)
+- [ ] Integrate Gemini Vision API for image analysis (OCR fallback when OCR confidence < 70)
 - [ ] Build AI analyzer service (Claude API integration for fraud explanations + categorization)
 - [ ] Implement Isolation Forest anomaly detector
 - [ ] Add expense categorization validation

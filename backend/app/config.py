@@ -24,9 +24,7 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploads"
     MAX_FILE_SIZE_MB: int = 10
 
-    # OCR engine for receipt extraction: "tesseract" or "paddle"
-    OCR_ENGINE: Literal["tesseract", "paddle"] = "tesseract"
-    # PP-OCRv6 model size for the paddle engine; small is ~3x faster than medium
+    # PP-OCRv6 model size for receipt OCR; small is ~3x faster than medium
     OCR_PADDLE_MODEL: Literal["tiny", "small", "medium"] = "small"
 
     # AI APIs (Phase 2)

@@ -1,9 +1,7 @@
-"""Engine-independent pieces of receipt extraction.
+"""Field parsing for receipt extraction.
 
-Every OCR engine turns an image into lines of text with some geometry; from
-there the field parsing is the same. Keeping it here means an accuracy
-difference between engines in the eval harness comes from recognition and
-layout, not from two diverging copies of the same regexes.
+The OCR engine turns an image into lines of text with some geometry; this
+module turns those lines into merchant, date, time, total and line items.
 """
 
 import logging
@@ -221,7 +219,7 @@ def _parse_line_items(lines: list[str]) -> list[dict]:
 
 
 def _parse_fields(result: OCRResult, raw_text: str, merchant: str | None) -> OCRResult:
-    """Fill every field of ``result`` from the engine's text and chosen merchant."""
+    """Fill every field of ``result`` from the OCR text and chosen merchant."""
     result.raw_text = raw_text
     lines = [l for l in raw_text.splitlines() if l.strip()]
 

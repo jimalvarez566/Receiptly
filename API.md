@@ -178,7 +178,7 @@ List receipts with pagination and optional status filter.
     "raw_text": "..."
   },
   "ocr_confidence": "75.00",
-  "ocr_method": "tesseract",
+  "ocr_method": "paddle",
   "fraud_score": 42,
   "risk_level": "medium",
   "status": "flagged",

@@ -1,29 +1,33 @@
 # Receipt extraction evaluation harness
 
-Measures how well an OCR engine fills the fields the fraud pipeline actually
+Measures how well receipt OCR fills the fields the fraud pipeline actually
 consumes: `merchant`, `transaction_date`, `total_amount`, `line_items`.
 
-It exists so that "PaddleOCR is more accurate than Tesseract" is a committed
-number with a date on it, not an impression. Take a baseline **before**
-changing the engine; every later run is diffed against it.
+It exists so that "extraction got more accurate" is a committed number with a
+date on it, not an impression. Take a baseline **before** changing the OCR
+code; every later run is diffed against it.
+
+PaddleOCR replaced Tesseract after both were benchmarked here.
+`results/tesseract-cord.json` is kept as that baseline; the Tesseract engine
+itself has been removed, so it can't be re-run.
 
 ## Running
 
 From `backend/`, with the project venv active (Python 3.12):
 
 ```bash
-python -m eval.run_eval --engine tesseract --dataset own
-python -m eval.run_eval --engine paddle    --dataset own
-python -m eval.run_eval --engine tesseract --dataset sroie --limit 200
+python -m eval.run_eval --dataset own
+python -m eval.run_eval --dataset sroie --limit 200
 ```
 
-The paddle engine uses the `small` PP-OCRv6 models by default; set
-`OCR_PADDLE_MODEL=medium` (or `tiny`) to evaluate another size. The size is
-recorded in the result's `engine_version`. Exporting
+OCR uses the `small` PP-OCRv6 models by default; set
+`OCR_PADDLE_MODEL=medium` (or `tiny`) to evaluate another size, with `--out`
+so it doesn't overwrite the default result. The size is recorded in the
+result's `engine_version`. Exporting
 `PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True` skips Paddle's slow
 model-host connectivity check once the models are downloaded.
 
-Results are written to `eval/results/<engine>-<dataset>.json` and are meant to
+Results are written to `eval/results/paddle-<dataset>.json` and are meant to
 be committed. `--no-save` prints without writing.
 
 ## How scoring works
@@ -89,16 +93,16 @@ eval/data/cord/image/receipt_00000.png
 eval/data/cord/json/receipt_00000.json
 ```
 
-On CORD, read **text recall**, not the field scores. The shared field parsers
-only recognise US-style amounts (`12.34`), so CORD's rupiah prices (`60.000`)
-score near zero for every engine regardless of how well it read them.
+On CORD, read **text recall**, not the field scores. The field parsers only
+recognise US-style amounts (`12.34`), so CORD's rupiah prices (`60.000`)
+score near zero regardless of how well the OCR read them.
 
 `eval/data/` is gitignored; both sets are research-use and are cited in the
 report rather than redistributed here. Results on them can be committed, since their labels are already public.
 
-## Adding an engine
+## What's being measured
 
-Engines live in `app/services/ocr/` and are registered in its `get_engine(name)`.
-An engine is any callable `(file_path: str) -> OCRResult`. Field parsing shared
-by all engines is in `ocr/common.py`, so a difference in scores comes from
-recognition and layout, not from diverging parsers.
+The harness calls the same `extract_receipt_data` the upload endpoint does
+(`app/services/ocr/`). Recognition and line reconstruction are in
+`ocr/paddle.py`; field parsing is in `ocr/common.py`. Compare the field scores
+with text recall to tell which half a regression came from.

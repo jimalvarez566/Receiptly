@@ -2,7 +2,7 @@
 
 Paddle detects text as independent boxes, not lines: on a receipt the quantity,
 the item name and its price ("1", "Rainbow Roll", "$15.95") come back as three
-separate detections. The shared parsers expect lines, so this module rebuilds
+separate detections. The parsers in common.py expect lines, so this module rebuilds
 them from box geometry first:
 
 * Rows — boxes whose vertical centres agree to within half a glyph height are
@@ -49,7 +49,7 @@ _pipeline_lock = threading.Lock()
 
 
 def _get_pipeline():
-    """Build the PaddleOCR pipeline once and reuse it; loading models takes seconds.
+    """Build the PaddleOCR pipeline on first use and reuse it; loading models takes seconds.
 
     Model size comes from ``settings.OCR_PADDLE_MODEL``. Document unwarping and
     orientation models are left off: they add latency and memory, and their
@@ -59,7 +59,7 @@ def _get_pipeline():
     global _pipeline
     with _pipeline_lock:
         if _pipeline is None:
-            from paddleocr import PaddleOCR  # heavy import; only paid when this engine is used
+            from paddleocr import PaddleOCR  # heavy import; deferred until the first receipt
             size = settings.OCR_PADDLE_MODEL
             _pipeline = PaddleOCR(
                 lang="en",
@@ -166,15 +166,19 @@ def _read_page(img: Image.Image) -> list[TextLine]:
 def extract(file_path: str) -> OCRResult:
     """Run PaddleOCR on a receipt file and return structured extracted data.
 
-    Fills the same fields as the Tesseract engine. ``raw_text`` holds the
-    reconstructed rows, so it reads like a printed receipt rather than a list
-    of detections.
+    Populates:
+    - merchant: store / restaurant name
+    - transaction_date: date of purchase
+    - transaction_time: time of purchase (string, e.g. "2:34 PM")
+    - total_amount: grand total as Decimal
+    - line_items: list of {"description": str, "amount": float}
+    - raw_text: the reconstructed rows, so it reads like a printed receipt
+      rather than a list of detections
+    - confidence: rough 0-100 score based on how many fields were extracted
 
-    A failure to load Paddle itself (missing package, missing models) raises,
-    so the caller can fall back to Tesseract; a failure on one file is logged
-    and returns an empty result, like the Tesseract engine.
+    Never raises: any failure, including Paddle or its models failing to load,
+    is logged and returns an empty result, so OCR never fails an upload.
     """
-    _get_pipeline()
     result = OCRResult(engine="paddle")
 
     try:

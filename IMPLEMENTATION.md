@@ -37,7 +37,7 @@ backend/
 │   │   └── deps.py           # DB session dependency
 │   │
 │   ├── services/              # Business logic
-│   │   ├── ocr.py            # Tesseract OCR pipeline (built ✅)
+│   │   ├── ocr/             # PaddleOCR pipeline (built ✅)
 │   │   ├── duplicate_detector.py    # Perceptual hashing (planned)
 │   │   ├── policy_validator.py      # Rule-based checks (planned)
 │   │   ├── anomaly_detector.py      # Isolation Forest (Phase 2)
@@ -100,7 +100,7 @@ CREATE TABLE receipts (
     
     -- Metadata
     ocr_confidence DECIMAL(5, 2),  -- 0-100
-    ocr_method VARCHAR(20),  -- 'tesseract' or 'gemini'
+    ocr_method VARCHAR(20),  -- 'paddle' or 'gemini'
     
     -- Analysis results
     fraud_score INTEGER,  -- 0-100
@@ -273,28 +273,26 @@ Each detector implements this interface:
 - `AnomalyDetector` (Phase 2): Uses Isolation Forest
 - `AIAnalyzer` (Phase 2): Calls Claude/Gemini APIs
 
-## OCR Service Design (`app/services/ocr.py`)
+## OCR Service Design (`app/services/ocr/`)
 
-### Preprocessing Pipeline
-Every image is preprocessed before any Tesseract call to improve recognition accuracy on phone-captured receipts:
-1. **Grayscale** — removes irrelevant colour channels
-2. **Upscale** — minimum 1000px width; Tesseract accuracy degrades below ~200 DPI
-3. **Autocontrast** — stretches the histogram so faint ink becomes darker
-4. **Sharpen (2×)** — compensates for camera blur
-5. **Binarize** — pure black/white at threshold 128; eliminates grey gradients
+PaddleOCR (PP-OCRv6, `small` models by default via `OCR_PADDLE_MODEL`) replaced the original Tesseract engine after both were benchmarked with the eval harness in `backend/eval/`.
+
+### Line Reconstruction (`paddle.py`)
+Paddle returns independent text boxes, not lines — a quantity, item name and price come back as three detections. Lines are rebuilt from box geometry before any parsing:
+- **Score filter**: drops recognitions scoring below 0.5 (mostly separator rows and smudges)
+- **De-tilt**: box centres are rotated by the page's median baseline angle, so a slanted phone photo still pairs a description with its price
+- **Row grouping**: boxes whose centres agree to within half a glyph height form one row, read left to right
 
 ### Merchant Name Detection
-Uses `image_to_data` (Tesseract's structured output) rather than raw text:
-- **Pass 1**: reads level-4 (line) bounding box heights — these span the full line, giving reliable font-size comparisons
-- **Pass 2**: collects level-5 (word) tokens for candidate lines using Tesseract's `(block_num, par_num, line_num)` key — avoids per-letter height inconsistencies that broke earlier approaches
+- **Line height**: the tallest line wins; height is measured along each box's own edges (a tilted box's axis-aligned height is inflated), and a row's height is that of its longest box so a short padded "$15.95" can't outrank the store name
 - **Boilerplate filter**: strips URLs, "thank you", payment keywords, and long numeric sequences before ranking
-- **Zone filter**: ignores anything below 60% of the image height (footer territory)
+- **Zone filter**: ignores lines below 60% of the receipt's text extent (footer territory), measured from the text rather than the image edges since photos include background
 - **Token cleanup**: removes pure-symbol tokens and 1–2 char lowercase fragments from the winning line
 
 ### Field Extraction (from raw text)
 | Field | Strategy |
 |---|---|
-| `merchant` | Font-size detection (above) |
+| `merchant` | Line-height detection (above) |
 | `transaction_date` | Regex covering MM/DD/YYYY, YYYY-MM-DD, month-name formats |
 | `transaction_time` | Regex for HH:MM with optional seconds and AM/PM |
 | `amount` | Keyword-anchored search (`total`, `amount due`); falls back to largest dollar figure |
@@ -316,7 +314,7 @@ The `items` JSONB column stores:
 ## AI Integration Strategy (Phase 2)
 
 ### OCR Fallback (Gemini Vision)
-If Tesseract confidence < 70, fall back to Gemini Vision for extraction. This keeps costs near zero for clear receipts while recovering accuracy on damaged or handwritten ones.
+If OCR confidence < 70, fall back to Gemini Vision for extraction. This keeps costs near zero for clear receipts while recovering accuracy on damaged or handwritten ones.
 
 ### Claude API Usage (Phase 2)
 
@@ -333,7 +331,7 @@ If Tesseract confidence < 70, fall back to Gemini Vision for extraction. This ke
 ### Gemini Vision Usage (Phase 2)
 
 **Use Cases:**
-1. OCR fallback (when Tesseract fails)
+1. OCR fallback (when PaddleOCR fails)
 2. Image authenticity analysis (detect Photoshop)
 3. Receipt quality assessment
 
@@ -431,7 +429,7 @@ ENABLE_AI_ANALYSIS=False
 ## Performance Targets
 
 - Receipt upload: <2 seconds
-- OCR extraction: <5 seconds (Tesseract) or <10 seconds (Gemini)
+- OCR extraction: <5 seconds (PaddleOCR) or <10 seconds (Gemini)
 - Duplicate detection: <1 second
 - Full fraud analysis: <15 seconds total
 - API response time (excluding analysis): <200ms
