@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '@/lib/api'
-import type { Receipt } from '@/lib/api'
+import type { FraudFlag, Receipt } from '@/lib/api'
 import { RiskBadge } from '@/components/RiskBadge'
 import { StatusBadge } from '@/components/StatusBadge'
+
+// Shadow-mode flags come from rules still being evaluated: shown, but not scored
+function isShadow(flag: FraudFlag) {
+  return flag.details?.shadow === true
+}
 
 function fmt(amount: number | string | null) {
   if (amount == null) return '—'
@@ -120,6 +125,9 @@ export function ReceiptDetail() {
   const lineItems: { description: string; amount: number }[] =
     receipt.items?.line_items ?? []
 
+  const scoredFlags = receipt.fraud_flags.filter((f) => !isShadow(f))
+  const shadowCount = receipt.fraud_flags.length - scoredFlags.length
+
   const duplicateFlag = receipt.fraud_flags.find((f) => f.flag_type === 'duplicate')
   const originalReceiptId =
     duplicateFlag?.details && typeof duplicateFlag.details === 'object'
@@ -194,8 +202,11 @@ export function ReceiptDetail() {
         <div className="px-4 py-2.5 border-b border-[#262626]">
           <h2 className="text-xs font-medium text-[#737373] uppercase tracking-wider">
             Fraud Flags
-            {receipt.fraud_flags.length > 0 && (
-              <span className="ml-2 text-red-400">{receipt.fraud_flags.length}</span>
+            {scoredFlags.length > 0 && (
+              <span className="ml-2 text-red-400">{scoredFlags.length}</span>
+            )}
+            {shadowCount > 0 && (
+              <span className="ml-2 text-[#525252]">+{shadowCount} shadow</span>
             )}
           </h2>
         </div>
@@ -204,11 +215,23 @@ export function ReceiptDetail() {
         ) : (
           <div className="divide-y divide-[#1a1a1a]">
             {receipt.fraud_flags.map((flag) => (
-              <div key={flag.id} className="px-4 py-3">
+              <div key={flag.id} className={`px-4 py-3 ${isShadow(flag) ? 'opacity-60' : ''}`}>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="mono text-xs text-[#e5e5e5]">{flag.flag_type}</span>
+                  <span className="mono text-xs text-[#e5e5e5]">
+                    {flag.flag_type}
+                    {typeof flag.details?.signal === 'string' &&
+                      ` · ${flag.details.period === 'week' ? 'weekly ' : flag.details.period === 'month' ? 'monthly ' : ''}${flag.details.signal.replace('_', ' ')}`}
+                  </span>
                   <SeverityDot severity={flag.severity} />
                   <span className={`text-xs ${severityColor(flag.severity)}`}>{flag.severity}</span>
+                  {isShadow(flag) && (
+                    <span
+                      title="Rule in shadow mode: recorded for evaluation, not counted in the score"
+                      className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-[#262626] text-[#737373]"
+                    >
+                      shadow
+                    </span>
+                  )}
                   {flag.confidence_score != null && (
                     <span className="mono text-xs text-[#404040] ml-auto">
                       {Number(flag.confidence_score).toFixed(0)}% confidence
@@ -226,14 +249,22 @@ export function ReceiptDetail() {
                     View original → #{String(originalReceiptId)}
                   </Link>
                 )}
+                {typeof flag.details?.matching_receipt_id === 'number' && (
+                  <Link
+                    to={`/receipts/${flag.details.matching_receipt_id}`}
+                    className="text-xs text-blue-400 underline underline-offset-2 mt-1 block hover:text-blue-300"
+                  >
+                    View matching receipt → #{flag.details.matching_receipt_id}
+                  </Link>
+                )}
               </div>
             ))}
           </div>
         )}
       </section>
 
-      {/* Explain feature */}
-      {receipt.fraud_flags.length > 0 && (
+      {/* Explain feature — explains the score, so only scored flags count */}
+      {scoredFlags.length > 0 && (
         <div className="mb-4">
           <button
             onClick={handleExplain}

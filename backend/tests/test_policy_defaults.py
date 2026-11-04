@@ -3,7 +3,7 @@ from app.services.policy_defaults import DEFAULT_RULES, build_default_rules
 
 
 def test_default_rules_shape():
-    assert len(DEFAULT_RULES) == 6
+    assert len(DEFAULT_RULES) == 9
     names = {r["rule_name"] for r in DEFAULT_RULES}
     assert "No future dates" in names
     for r in DEFAULT_RULES:
@@ -13,7 +13,7 @@ def test_default_rules_shape():
 
 def test_build_default_rules_sets_tenant_and_active():
     rules = build_default_rules(tenant_id=42)
-    assert len(rules) == 6
+    assert len(rules) == 9
     assert all(isinstance(r, PolicyRule) for r in rules)
     assert all(r.tenant_id == 42 for r in rules)
     assert all(r.is_active is True for r in rules)

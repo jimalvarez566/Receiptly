@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.fraud_flag import FraudFlag
 from app.models.policy_rule import PolicyRule
 from app.models.receipt import Receipt
+from app.services.anomaly_detector import RULE_TYPES as ANOMALY_RULE_TYPES
 
 logger = logging.getLogger(__name__)
 
@@ -22,12 +23,15 @@ async def validate_receipt(receipt: Receipt, db: AsyncSession) -> list[FraudFlag
     - round_number:           total is a suspiciously round number
     - short_window_duplicate: same employee submits a similar receipt within a time window
 
+    Anomaly rule types in the same table are run by ``anomaly_detector``.
+
     Returns a list of FraudFlag ORM objects (not yet added to the session).
     """
     result = await db.execute(
         select(PolicyRule)
         .where(PolicyRule.is_active == True)  # noqa: E712
         .where(PolicyRule.tenant_id == receipt.tenant_id)
+        .where(PolicyRule.rule_type.not_in(ANOMALY_RULE_TYPES))
     )
     rules = result.scalars().all()
 
@@ -249,12 +253,12 @@ async def _check_short_window_duplicate(
     Parameters: {"window_hours": 48, "amount_tolerance_pct": 10}
 
     Matching criteria (all must hold):
-    - Same employee_id
+    - Same submitter (every employee submits their own receipts)
     - Merchant name overlap (one contains the other, case-insensitive)
     - Amount within tolerance percentage
     - Submitted (created_at) within the configured window
     """
-    if receipt.employee_id is None or receipt.merchant is None or receipt.amount is None:
+    if receipt.merchant is None or receipt.amount is None:
         return None
 
     window_hours: int = int(rule.parameters.get("window_hours", 48))
@@ -267,7 +271,7 @@ async def _check_short_window_duplicate(
     result = await db.execute(
         select(Receipt.id, Receipt.merchant, Receipt.amount, Receipt.created_at)
         .where(Receipt.tenant_id == receipt.tenant_id)
-        .where(Receipt.employee_id == receipt.employee_id)
+        .where(Receipt.submitted_by_user_id == receipt.submitted_by_user_id)
         .where(Receipt.merchant.is_not(None))
         .where(Receipt.amount.is_not(None))
         .where(Receipt.id != receipt.id)

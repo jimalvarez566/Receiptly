@@ -32,7 +32,7 @@ The Spring 2026 MVP pipeline, plus Supabase multi-tenant auth added in September
 Every receipt upload automatically runs the full pipeline:
 
 ```
-Upload → OCR + pHash (parallel) → Duplicate Detection → Policy Validation → Fraud Scoring → Response
+Upload → OCR + pHash (parallel) → Duplicate Detection → Policy Validation → Anomaly Detection → Fraud Scoring → Response
 ```
 
 ### OCR Service (`app/services/ocr/`)
@@ -57,13 +57,19 @@ Model size is set by `OCR_PADDLE_MODEL` (`tiny` / `small` / `medium`, default `s
 **Policy Validator** (`app/services/policy_validator.py`)
 - Evaluates all active `policy_rules` from the database
 - Five rule types: `amount_limit`, `future_date`, `vendor_category`, `round_number`, `short_window_duplicate`
-- Businesses created via `POST /api/v1/tenants` get the six default policy rules
-  automatically; use `python seed_policies.py --tenant-id <id>` only to backfill a
-  business created before that behavior existed.
+- Businesses created via `POST /api/v1/tenants` get the nine default rules (six
+  policy, three anomaly) automatically; run `python seed_policies.py --tenant-id <id>`
+  to backfill a business created before a rule existed — it only adds missing rules.
+
+**Anomaly Detector** (`app/services/anomaly_detector.py`)
+- Compares each receipt with the business's earlier receipts (never across businesses); the employee is the submitting user
+- `amount_outlier` — two rules, weekly and monthly: the employee's spend for the calendar week (Mon–Sun) or month of the receipt's date is far above their usual week or month (median/MAD robust z-score ≥ 3.5 and ≥ 2× the median); employees with under 5 other weeks or months are compared with every employee in the business
+- `content_match` — an earlier receipt with the same merchant, date and total, from another employee (double claim) or the same one (resubmission with a new photo)
+- Configured per business as `policy_rules` rows. All start in **shadow mode**: flags are stored and shown (labelled "shadow") but add nothing to the score or status until the rule's `"shadow"` parameter is set to `false`
 
 **Fraud Scorer** (`app/services/fraud_scorer.py`)
 - Combines all flags into a 0–100 risk score
-- Weights by flag type and severity; diminishing returns for multiple flags
+- Weights by flag type and severity; diminishing returns for multiple flags; shadow-mode flags are ignored
 - Risk levels: `low` (0–29), `medium` (30–69), `high` (70–100)
 
 **Pipeline Orchestrator** (`app/services/fraud_detection_pipeline.py`)
@@ -126,7 +132,7 @@ header; `POST` / `GET /api/v1/tenants` require only the JWT.
 Interactive docs: `http://localhost:8000/docs`
 
 ### Tests
-112 tests covering the fraud scorer, every policy rule type, hash computation, JWT verification (HS256 and ES256), and tenant isolation — run with `python -m pytest` from `backend/`.
+149 tests covering the fraud scorer, every policy and anomaly rule type, hash computation, JWT verification (HS256 and ES256), and tenant isolation — run with `python -m pytest` from `backend/`.
 
 The DB-backed tests run against a **local** Postgres database named `fraud_detection_test` (`createdb fraud_detection_test`; override with `TEST_DATABASE_URL`). The suite refuses to run against any database whose name lacks `test`, so it cannot touch the Supabase database.
 
@@ -199,7 +205,7 @@ Full detail in [`CPSC_491_Project_Proposal - Evan Miller, Syon Chau, Jim Alvarez
 - [x] User authentication — Supabase Auth with HS256 and ES256/JWKS verification *(landed early, September)*
 - [x] Business-level data separation — every receipt query is tenant-scoped, and each new business is seeded with default policies *(landed early, September)*
 - [ ] Company-specific customization of policies, limits, categories, and reviewer settings (per-business rules exist, but there's no API or UI to edit them yet)
-- [ ] Historical pattern/anomaly detection wired into the fraud-scoring pipeline
+- [x] Historical pattern/anomaly detection wired into the fraud-scoring pipeline *(in shadow mode pending Week 8 tuning)*
 - [ ] Threshold tuning; dashboard statistics, risk summaries, trends, and graphs
 
 ### November — Additions and Development

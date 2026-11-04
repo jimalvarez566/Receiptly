@@ -14,6 +14,10 @@ _BASE_SCORES: dict[tuple[str, str], int] = {
     ("policy_violation", "high"):   50,
     ("policy_violation", "medium"): 30,
     ("policy_violation", "low"):    15,
+    # Placeholders until anomaly thresholds are tuned; unused while a rule is shadowed
+    ("anomaly",          "high"):   50,
+    ("anomaly",          "medium"): 30,
+    ("anomaly",          "low"):    15,
 }
 
 # Fallback when a (type, severity) combo isn't in the table above
@@ -27,8 +31,20 @@ _THRESHOLDS = [
 ]
 
 
+def is_shadow(flag: FraudFlag) -> bool:
+    """Whether the flag is from a rule in shadow mode.
+
+    Shadow flags are stored and shown to reviewers but add nothing to the score
+    and don't change a receipt's status, so a new signal's false-positive rate
+    can be measured before it counts (see ``anomaly_detector``).
+    """
+    return bool((flag.details or {}).get("shadow"))
+
+
 def calculate_score(flags: list[FraudFlag]) -> tuple[int, str]:
     """Combine fraud flags into a 0–100 risk score and a risk level string.
+
+    Shadow flags (``is_shadow``) are ignored.
 
     Algorithm:
     1. Compute an individual score for each flag:
@@ -50,6 +66,7 @@ def calculate_score(flags: list[FraudFlag]) -> tuple[int, str]:
     Returns:
         (fraud_score, risk_level) — e.g. (75, "high")
     """
+    flags = [f for f in flags if not is_shadow(f)]
     if not flags:
         return 0, "low"
 

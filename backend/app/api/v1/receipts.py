@@ -22,6 +22,7 @@ from app.models.receipt import Receipt
 from app.schemas.receipt import ReceiptListResponse, ReceiptResponse, ReviewRequest, ReviewResponse
 from app.services.duplicate_detector import compute_image_hash
 from app.services.fraud_detection_pipeline import run_fraud_pipeline
+from app.services.fraud_scorer import is_shadow
 from app.services.gemini_explainer import call_gemini
 from app.services.ocr import extract_receipt_data
 
@@ -199,8 +200,10 @@ async def explain_receipt(
     if not receipt:
         raise HTTPException(status_code=404, detail="Receipt not found")
 
-    if not receipt.fraud_flags:
-        raise HTTPException(status_code=400, detail="Receipt has no fraud flags — nothing to explain")
+    # The explanation covers the score, which shadow-mode flags don't affect
+    scored_flags = [f for f in receipt.fraud_flags if not is_shadow(f)]
+    if not scored_flags:
+        raise HTTPException(status_code=400, detail="Receipt has no scored fraud flags — nothing to explain")
 
     if receipt.explanation:
         return {"explanation": receipt.explanation}
@@ -210,7 +213,7 @@ async def explain_receipt(
 
     try:
         explanation = await asyncio.get_event_loop().run_in_executor(
-            None, call_gemini, receipt, receipt.fraud_flags
+            None, call_gemini, receipt, scored_flags
         )
     except RuntimeError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc

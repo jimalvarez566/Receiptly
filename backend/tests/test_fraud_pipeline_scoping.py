@@ -5,7 +5,6 @@ from decimal import Decimal
 import pytest
 
 from app.models import Membership, Tenant
-from app.models.employee import Employee
 from app.models.policy_rule import PolicyRule
 from app.models.receipt import Receipt
 from app.services.duplicate_detector import detect_duplicates
@@ -21,11 +20,11 @@ async def _tenant(db_session, name):
     return t
 
 
-async def _receipt(db_session, tenant_id, **kw):
+async def _receipt(db_session, tenant_id, submitted_by_user_id=None, **kw):
     r = Receipt(
         image_path="x",
         tenant_id=tenant_id,
-        submitted_by_user_id=uuid.uuid4(),
+        submitted_by_user_id=submitted_by_user_id or uuid.uuid4(),
         status="pending",
         **kw,
     )
@@ -63,21 +62,18 @@ async def test_short_window_duplicate_does_not_cross_tenants(db_session):
     ))
     await db_session.flush()
 
-    # receipts.employee_id has an FK to employees.id; create the row and reuse
-    # its id on both receipts so only the tenant filter separates them.
-    emp = Employee(tenant_id=a.id, name="Sam", email="sam@a.com")
-    db_session.add(emp)
-    await db_session.flush()
-    shared_employee = emp.id
+    # The same user submits to both businesses, so only the tenant filter
+    # separates the receipts.
+    shared_user = uuid.uuid4()
     # Receipt.created_at maps to TIMESTAMP WITHOUT TIME ZONE, so use naive UTC.
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     # An older, matching receipt — but in Tenant A.
     await _receipt(
-        db_session, a.id, employee_id=shared_employee, merchant="Cafe Nero",
+        db_session, a.id, submitted_by_user_id=shared_user, merchant="Cafe Nero",
         amount=Decimal("20.00"), created_at=now,
     )
     r_b = await _receipt(
-        db_session, b.id, employee_id=shared_employee, merchant="Cafe Nero",
+        db_session, b.id, submitted_by_user_id=shared_user, merchant="Cafe Nero",
         amount=Decimal("20.00"), created_at=now,
     )
     flags_b = await validate_receipt(r_b, db_session)
@@ -91,23 +87,37 @@ async def test_short_window_duplicate_matches_within_same_tenant(db_session):
         severity="high", parameters={"window_hours": 48, "amount_tolerance_pct": 10},
         is_active=True,
     ))
-    emp = Employee(tenant_id=b.id, name="E", email="e@b.com")
-    db_session.add(emp)
     await db_session.flush()
 
+    user = uuid.uuid4()
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     older = await _receipt(
-        db_session, b.id, employee_id=emp.id, merchant="Cafe Nero",
+        db_session, b.id, submitted_by_user_id=user, merchant="Cafe Nero",
         amount=Decimal("20.00"), created_at=now,
     )
     newer = await _receipt(
-        db_session, b.id, employee_id=emp.id, merchant="Cafe Nero Downtown",
+        db_session, b.id, submitted_by_user_id=user, merchant="Cafe Nero Downtown",
         amount=Decimal("20.50"), created_at=now,
     )
     flags = await validate_receipt(newer, db_session)
     assert len(flags) == 1
     assert flags[0].flag_type == "policy_violation"
     assert flags[0].details["matching_receipt_id"] == older.id
+
+
+async def test_short_window_duplicate_ignores_other_submitters(db_session):
+    b = await _tenant(db_session, "B")
+    db_session.add(PolicyRule(
+        tenant_id=b.id, rule_name="swd", rule_type="short_window_duplicate",
+        severity="high", parameters={"window_hours": 48, "amount_tolerance_pct": 10},
+        is_active=True,
+    ))
+    await db_session.flush()
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    await _receipt(db_session, b.id, merchant="Cafe Nero", amount=Decimal("20.00"), created_at=now)
+    newer = await _receipt(db_session, b.id, merchant="Cafe Nero", amount=Decimal("20.00"), created_at=now)
+    assert await validate_receipt(newer, db_session) == []  # different employees
 
 
 _HASH = "f" * 16  # a valid 64-bit hex pHash string

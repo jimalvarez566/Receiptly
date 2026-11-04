@@ -2,6 +2,9 @@
 
 Single source of truth for both the tenants API (auto-seed on business
 creation) and seed_policies.py (backfill for pre-existing businesses).
+
+The last three are anomaly rules (run by ``anomaly_detector``), seeded in shadow
+mode: their flags are shown but not scored until ``"shadow"`` is set to false.
 """
 import copy
 
@@ -66,6 +69,38 @@ DEFAULT_RULES: list[dict] = [
         "rule_type": "short_window_duplicate",
         "severity": "high",
         "parameters": {"window_hours": 48, "amount_tolerance_pct": 10},
+    },
+    {
+        "rule_name": "Unusual weekly amount for employee",
+        "rule_type": "amount_outlier",
+        "severity": "medium",
+        "parameters": {
+            "period": "week",
+            "threshold": 3.5,
+            "min_ratio": 2.0,
+            "min_history": 5,
+            "min_company_history": 10,
+            "shadow": True,
+        },
+    },
+    {
+        "rule_name": "Unusual monthly amount for employee",
+        "rule_type": "amount_outlier",
+        "severity": "medium",
+        "parameters": {
+            "period": "month",
+            "threshold": 3.5,
+            "min_ratio": 2.0,
+            "min_history": 5,
+            "min_company_history": 10,
+            "shadow": True,
+        },
+    },
+    {
+        "rule_name": "Matching receipt in business",
+        "rule_type": "content_match",
+        "severity": "high",
+        "parameters": {"shadow": True},
     },
 ]
 
