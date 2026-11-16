@@ -18,7 +18,7 @@ An intelligent fraud detection system that analyzes employee expense reports usi
 ### AI/ML
 - **Claude API**: Text analysis, categorization, fraud explanations (Sonnet 4)
 - **Gemini Vision API**: Image analysis, OCR fallback for difficult receipts
-- **Tesseract OCR**: Primary text extraction (open-source, local)
+- **PaddleOCR**: Primary text extraction (open-source, local)
 - **scikit-learn**: Isolation Forest for anomaly detection, K-means for clustering
 - **ImageHash**: Perceptual hashing for duplicate detection (pHash algorithm)
 
@@ -124,11 +124,11 @@ An intelligent fraud detection system that analyzes employee expense reports usi
 ### API Costs (Target: <$5/month during development)
 - **Claude API**: ~$0.01-0.02 per receipt (use only for complex analysis)
 - **Gemini Vision API**: Free tier (60 req/min, 1500/day)
-- **Tesseract OCR**: Free, unlimited (process locally first)
+- **PaddleOCR**: Free, unlimited (process locally first)
 
 ### Optimization Strategies
 - Cache all AI analysis results in database
-- Use Tesseract first, fallback to Gemini Vision only when confidence <70%
+- Use PaddleOCR first, fallback to Gemini Vision only when confidence <70%
 - Batch process receipts when possible
 - Store perceptual hashes to avoid re-processing
 

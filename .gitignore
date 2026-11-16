@@ -23,3 +23,12 @@ htmlcov/
 
 # Logs
 *.log
+
+# Eval datasets (downloaded separately, research-use)
+backend/eval/data/
+
+# Receipts stay local for now: no images, and nothing transcribed from them
+# (labels, or results that embed gold/predicted values per receipt).
+test_receipts/
+backend/eval/labels/own*.json
+backend/eval/results/*-own*.json

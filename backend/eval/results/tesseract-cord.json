@@ -1,0 +1,6282 @@
+{
+  "engine": "tesseract",
+  "engine_version": "tesseract 5.5.2",
+  "dataset": "cord",
+  "run_at": "2026-10-13T03:38:44+00:00",
+  "python": "3.12.2",
+  "platform": "macOS-15.0-arm64-arm-64bit",
+  "latency_seconds": {
+    "mean": 0.687,
+    "median": 0.402,
+    "max": 14.53,
+    "total": 137.46
+  },
+  "summary": {
+    "receipts": 200,
+    "fields": {
+      "merchant": {
+        "labelled": 0,
+        "correct": 0,
+        "wrong": 0,
+        "missing": 0,
+        "accuracy": null
+      },
+      "date": {
+        "labelled": 0,
+        "correct": 0,
+        "wrong": 0,
+        "missing": 0,
+        "accuracy": null
+      },
+      "total": {
+        "labelled": 193,
+        "correct": 0,
+        "wrong": 43,
+        "missing": 150,
+        "accuracy": 0.0
+      }
+    },
+    "line_items": {
+      "receipts": 197,
+      "gold_items": 444,
+      "predicted_items": 49,
+      "matched": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "line_items_amount_only": {
+      "receipts": 197,
+      "gold_items": 444,
+      "predicted_items": 49,
+      "matched": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "all_key_fields_correct": {
+      "scored": 193,
+      "correct": 0,
+      "rate": 0.0
+    },
+    "text_recall": {
+      "names": {
+        "gold": 444,
+        "found": 148,
+        "recall": 0.3333,
+        "mean_cer": 0.4044
+      },
+      "amounts": {
+        "gold": 637,
+        "found": 181,
+        "recall": 0.2841
+      }
+    }
+  },
+  "by_source_type": {
+    "photo": {
+      "receipts": 200,
+      "fields": {
+        "merchant": {
+          "labelled": 0,
+          "correct": 0,
+          "wrong": 0,
+          "missing": 0,
+          "accuracy": null
+        },
+        "date": {
+          "labelled": 0,
+          "correct": 0,
+          "wrong": 0,
+          "missing": 0,
+          "accuracy": null
+        },
+        "total": {
+          "labelled": 193,
+          "correct": 0,
+          "wrong": 43,
+          "missing": 150,
+          "accuracy": 0.0
+        }
+      },
+      "line_items": {
+        "receipts": 197,
+        "gold_items": 444,
+        "predicted_items": 49,
+        "matched": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "line_items_amount_only": {
+        "receipts": 197,
+        "gold_items": 444,
+        "predicted_items": 49,
+        "matched": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "all_key_fields_correct": {
+        "scored": 193,
+        "correct": 0,
+        "rate": 0.0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 444,
+          "found": 148,
+          "recall": 0.3333,
+          "mean_cer": 0.4044
+        },
+        "amounts": {
+          "gold": 637,
+          "found": 181,
+          "recall": 0.2841
+        }
+      }
+    }
+  },
+  "receipts": [
+    {
+      "id": "test_0000",
+      "file": "backend/eval/data/cord/image/test_0000.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "60000",
+        "pred": "60.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.6667
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.36,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0001",
+      "file": "backend/eval/data/cord/image/test_0001.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "91000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 0,
+          "cer_sum": 3.0
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.258,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0002",
+      "file": "backend/eval/data/cord/image/test_0002.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "28000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.6667
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.407,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0003",
+      "file": "backend/eval/data/cord/image/test_0003.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "11000",
+        "pred": "1.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.343,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0004",
+      "file": "backend/eval/data/cord/image/test_0004.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "174600",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 0,
+          "cer_sum": 3.0
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.273,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0005",
+      "file": "backend/eval/data/cord/image/test_0005.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "31000",
+        "pred": "31.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 3,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.91,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "test_0006",
+      "file": "backend/eval/data/cord/image/test_0006.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "46000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 1,
+          "cer_sum": 0.3558
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.372,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0007",
+      "file": "backend/eval/data/cord/image/test_0007.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "111000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.365,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0008",
+      "file": "backend/eval/data/cord/image/test_0008.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "50000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.399,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0009",
+      "file": "backend/eval/data/cord/image/test_0009.png",
+      "source_type": "photo",
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.0556
+        },
+        "amounts": {
+          "gold": 1,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.66,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0010",
+      "file": "backend/eval/data/cord/image/test_0010.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "17000",
+        "pred": "47.90",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.407,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "test_0011",
+      "file": "backend/eval/data/cord/image/test_0011.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "230000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.384,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0012",
+      "file": "backend/eval/data/cord/image/test_0012.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "120000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "text_recall": {
+        "names": {
+          "gold": 0,
+          "found": 0,
+          "cer_sum": 0
+        },
+        "amounts": {
+          "gold": 1,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.292,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0013",
+      "file": "backend/eval/data/cord/image/test_0013.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "51300",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 1.2222
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.389,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0014",
+      "file": "backend/eval/data/cord/image/test_0014.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "281435",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 6,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 6,
+          "found": 2,
+          "cer_sum": 0.3714
+        },
+        "amounts": {
+          "gold": 7,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 1.511,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0015",
+      "file": "backend/eval/data/cord/image/test_0015.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "63000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 2.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.336,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0016",
+      "file": "backend/eval/data/cord/image/test_0016.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "70000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 1,
+          "cer_sum": 0.0769
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.473,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0017",
+      "file": "backend/eval/data/cord/image/test_0017.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "91000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 1,
+          "cer_sum": 0.6145
+        },
+        "amounts": {
+          "gold": 5,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.39,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0018",
+      "file": "backend/eval/data/cord/image/test_0018.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "156000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.276,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0019",
+      "file": "backend/eval/data/cord/image/test_0019.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "176000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 2.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.268,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0020",
+      "file": "backend/eval/data/cord/image/test_0020.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "377859",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 5,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 5,
+          "found": 0,
+          "cer_sum": 5.0
+        },
+        "amounts": {
+          "gold": 6,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.76,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0021",
+      "file": "backend/eval/data/cord/image/test_0021.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "38000",
+        "pred": "3.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.125
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.467,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "test_0022",
+      "file": "backend/eval/data/cord/image/test_0022.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "40000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 1,
+          "cer_sum": 0.0435
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.447,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0023",
+      "file": "backend/eval/data/cord/image/test_0023.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "63000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.313,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0024",
+      "file": "backend/eval/data/cord/image/test_0024.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "118000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 1.4356
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.522,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0025",
+      "file": "backend/eval/data/cord/image/test_0025.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "43000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 3,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.475,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0026",
+      "file": "backend/eval/data/cord/image/test_0026.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "138000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 0.9673
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.364,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0027",
+      "file": "backend/eval/data/cord/image/test_0027.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "61600",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 1.25
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.401,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0028",
+      "file": "backend/eval/data/cord/image/test_0028.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "426195",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 2,
+          "cer_sum": 0.0769
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.504,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0029",
+      "file": "backend/eval/data/cord/image/test_0029.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "145900",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 6,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 6,
+          "found": 3,
+          "cer_sum": 1.0095
+        },
+        "amounts": {
+          "gold": 7,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.571,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0030",
+      "file": "backend/eval/data/cord/image/test_0030.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "31500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.8571
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.327,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0031",
+      "file": "backend/eval/data/cord/image/test_0031.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "113886",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.936,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0032",
+      "file": "backend/eval/data/cord/image/test_0032.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "24000",
+        "pred": "90.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.5789
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.776,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0033",
+      "file": "backend/eval/data/cord/image/test_0033.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "148127",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 0,
+          "cer_sum": 3.0
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.332,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0034",
+      "file": "backend/eval/data/cord/image/test_0034.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "93500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 1.5606
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.397,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0035",
+      "file": "backend/eval/data/cord/image/test_0035.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "54000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 2,
+          "cer_sum": 0.3904
+        },
+        "amounts": {
+          "gold": 5,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.513,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0036",
+      "file": "backend/eval/data/cord/image/test_0036.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "40000",
+        "pred": "60.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 1,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.0556
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 1.726,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "test_0037",
+      "file": "backend/eval/data/cord/image/test_0037.png",
+      "source_type": "photo",
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 1,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 1,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.365,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "test_0038",
+      "file": "backend/eval/data/cord/image/test_0038.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "664329",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 9,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 9,
+          "found": 0,
+          "cer_sum": 7.6269
+        },
+        "amounts": {
+          "gold": 10,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 1.08,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0039",
+      "file": "backend/eval/data/cord/image/test_0039.png",
+      "source_type": "photo",
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 0,
+          "cer_sum": 3.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.314,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0040",
+      "file": "backend/eval/data/cord/image/test_0040.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "68000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 1.6591
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.325,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0041",
+      "file": "backend/eval/data/cord/image/test_0041.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "36500000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 10,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 10,
+          "found": 0,
+          "cer_sum": 4.1147
+        },
+        "amounts": {
+          "gold": 11,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.525,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0042",
+      "file": "backend/eval/data/cord/image/test_0042.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "16500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.887,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0043",
+      "file": "backend/eval/data/cord/image/test_0043.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "16500000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.6364
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 2.88,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0044",
+      "file": "backend/eval/data/cord/image/test_0044.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "30000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.262,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0045",
+      "file": "backend/eval/data/cord/image/test_0045.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "88000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 3,
+          "cer_sum": 0.0909
+        },
+        "amounts": {
+          "gold": 5,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.349,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0046",
+      "file": "backend/eval/data/cord/image/test_0046.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "40000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 2.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.295,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0047",
+      "file": "backend/eval/data/cord/image/test_0047.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "6300000",
+        "pred": "63000.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 6,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.537,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "test_0048",
+      "file": "backend/eval/data/cord/image/test_0048.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "25000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.5263
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.362,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0049",
+      "file": "backend/eval/data/cord/image/test_0049.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "23000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 2.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.27,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0050",
+      "file": "backend/eval/data/cord/image/test_0050.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "19500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.297,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0051",
+      "file": "backend/eval/data/cord/image/test_0051.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "334000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 0,
+          "cer_sum": 0.5981
+        },
+        "amounts": {
+          "gold": 5,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.484,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0052",
+      "file": "backend/eval/data/cord/image/test_0052.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "40000",
+        "pred": "40.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 2,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.438,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "test_0053",
+      "file": "backend/eval/data/cord/image/test_0053.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "123585",
+        "pred": "14.23",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 2,
+          "cer_sum": 0.2222
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.554,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "test_0054",
+      "file": "backend/eval/data/cord/image/test_0054.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "10000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.0833
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.352,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0055",
+      "file": "backend/eval/data/cord/image/test_0055.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "54000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.35,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0056",
+      "file": "backend/eval/data/cord/image/test_0056.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "8999",
+        "pred": "8.99",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.386,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "test_0057",
+      "file": "backend/eval/data/cord/image/test_0057.png",
+      "source_type": "photo",
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.375,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0058",
+      "file": "backend/eval/data/cord/image/test_0058.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "60500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 1.308,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0059",
+      "file": "backend/eval/data/cord/image/test_0059.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "680500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 9,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 9,
+          "found": 0,
+          "cer_sum": 5.2376
+        },
+        "amounts": {
+          "gold": 10,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 14.53,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0060",
+      "file": "backend/eval/data/cord/image/test_0060.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "26250",
+        "pred": "26.20",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 1,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 1,
+          "cer_sum": 0.2414
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.56,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "test_0061",
+      "file": "backend/eval/data/cord/image/test_0061.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "24500",
+        "pred": "7.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 1,
+          "cer_sum": 0.7667
+        },
+        "amounts": {
+          "gold": 5,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.472,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "test_0062",
+      "file": "backend/eval/data/cord/image/test_0062.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "48000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.301,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0063",
+      "file": "backend/eval/data/cord/image/test_0063.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "57000",
+        "pred": "60.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 2,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.579,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "test_0064",
+      "file": "backend/eval/data/cord/image/test_0064.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "16000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.34,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0065",
+      "file": "backend/eval/data/cord/image/test_0065.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "13000",
+        "pred": "13.86",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 1,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.5882
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.456,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "test_0066",
+      "file": "backend/eval/data/cord/image/test_0066.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "40000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.9167
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.324,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0067",
+      "file": "backend/eval/data/cord/image/test_0067.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "950000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.272,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0068",
+      "file": "backend/eval/data/cord/image/test_0068.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "20000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.7143
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.297,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0069",
+      "file": "backend/eval/data/cord/image/test_0069.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "74000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 2,
+          "cer_sum": 0.0667
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 1.032,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0070",
+      "file": "backend/eval/data/cord/image/test_0070.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "1565938",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 8,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 8,
+          "found": 7,
+          "cer_sum": 0.1
+        },
+        "amounts": {
+          "gold": 9,
+          "found": 6
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.648,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0071",
+      "file": "backend/eval/data/cord/image/test_0071.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "198000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.6667
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.34,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0072",
+      "file": "backend/eval/data/cord/image/test_0072.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "17500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.7273
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.437,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0073",
+      "file": "backend/eval/data/cord/image/test_0073.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "22000",
+        "pred": "22.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.3571
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.497,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "test_0074",
+      "file": "backend/eval/data/cord/image/test_0074.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "330264",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 0,
+          "cer_sum": 2.1875
+        },
+        "amounts": {
+          "gold": 5,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 2.184,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0075",
+      "file": "backend/eval/data/cord/image/test_0075.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "282000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 6,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 6,
+          "found": 0,
+          "cer_sum": 5.1239
+        },
+        "amounts": {
+          "gold": 7,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.297,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0076",
+      "file": "backend/eval/data/cord/image/test_0076.png",
+      "source_type": "photo",
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 0,
+          "cer_sum": 4.0
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.308,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0077",
+      "file": "backend/eval/data/cord/image/test_0077.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "17000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.888,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0078",
+      "file": "backend/eval/data/cord/image/test_0078.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "30000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 2.569,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0079",
+      "file": "backend/eval/data/cord/image/test_0079.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "22000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.8571
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.275,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0080",
+      "file": "backend/eval/data/cord/image/test_0080.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "25000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.251,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0081",
+      "file": "backend/eval/data/cord/image/test_0081.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "50000",
+        "pred": "8.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 1.2792
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 1.694,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0082",
+      "file": "backend/eval/data/cord/image/test_0082.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "385000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 3,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.446,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0083",
+      "file": "backend/eval/data/cord/image/test_0083.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "23000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.265,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0084",
+      "file": "backend/eval/data/cord/image/test_0084.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "39600",
+        "pred": "812.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 1,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 1,
+          "cer_sum": 0.6667
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.466,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "test_0085",
+      "file": "backend/eval/data/cord/image/test_0085.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "197450",
+        "pred": "30.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 11,
+        "pred_count": 4,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 11,
+          "found": 9,
+          "cer_sum": 0.4944
+        },
+        "amounts": {
+          "gold": 12,
+          "found": 5
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 1.119,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "test_0086",
+      "file": "backend/eval/data/cord/image/test_0086.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "22000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 0.2338
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.403,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0087",
+      "file": "backend/eval/data/cord/image/test_0087.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "40150",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.273,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0088",
+      "file": "backend/eval/data/cord/image/test_0088.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "47000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.46,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0089",
+      "file": "backend/eval/data/cord/image/test_0089.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "40000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.7778
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.414,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0090",
+      "file": "backend/eval/data/cord/image/test_0090.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "29500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.503,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0091",
+      "file": "backend/eval/data/cord/image/test_0091.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "21000",
+        "pred": "19.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 1,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 1.1364
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.347,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "test_0092",
+      "file": "backend/eval/data/cord/image/test_0092.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "240000",
+        "pred": "250.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 1,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.6667
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.45,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "test_0093",
+      "file": "backend/eval/data/cord/image/test_0093.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "17999",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.304,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0094",
+      "file": "backend/eval/data/cord/image/test_0094.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "140063",
+        "pred": "8.32",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 2,
+          "cer_sum": 0.5333
+        },
+        "amounts": {
+          "gold": 5,
+          "found": 4
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.575,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "test_0095",
+      "file": "backend/eval/data/cord/image/test_0095.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "61799",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 2.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.305,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0096",
+      "file": "backend/eval/data/cord/image/test_0096.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "41000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.392,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "test_0097",
+      "file": "backend/eval/data/cord/image/test_0097.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "55000",
+        "pred": "99.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 3,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 2,
+          "cer_sum": 0.1818
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 4
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.506,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "test_0098",
+      "file": "backend/eval/data/cord/image/test_0098.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "250690",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 0,
+          "cer_sum": 1.4785
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.82,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "test_0099",
+      "file": "backend/eval/data/cord/image/test_0099.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "75000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.591,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0000",
+      "file": "backend/eval/data/cord/image/validation_0000.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "45500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 0,
+          "cer_sum": 3.0
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.257,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0001",
+      "file": "backend/eval/data/cord/image/validation_0001.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "23000",
+        "pred": "27.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 1,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.8235
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.356,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "validation_0002",
+      "file": "backend/eval/data/cord/image/validation_0002.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "20000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.6923
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.427,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0003",
+      "file": "backend/eval/data/cord/image/validation_0003.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "28000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.4211
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 1.033,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0004",
+      "file": "backend/eval/data/cord/image/validation_0004.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "41000",
+        "pred": "41.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 1,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.453,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "validation_0005",
+      "file": "backend/eval/data/cord/image/validation_0005.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "8000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.6
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.577,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0006",
+      "file": "backend/eval/data/cord/image/validation_0006.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "123000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 1,
+          "cer_sum": 0.1352
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.354,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0007",
+      "file": "backend/eval/data/cord/image/validation_0007.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "59500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.1818
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.441,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0008",
+      "file": "backend/eval/data/cord/image/validation_0008.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "11700",
+        "pred": "4.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.1
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.367,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "validation_0009",
+      "file": "backend/eval/data/cord/image/validation_0009.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "20000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.7778
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.298,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0010",
+      "file": "backend/eval/data/cord/image/validation_0010.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "60000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 1.746
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.299,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0011",
+      "file": "backend/eval/data/cord/image/validation_0011.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "89100",
+        "pred": "35.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 2,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 3,
+          "cer_sum": 0.2727
+        },
+        "amounts": {
+          "gold": 5,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.398,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "validation_0012",
+      "file": "backend/eval/data/cord/image/validation_0012.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "72000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.6667
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.44,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0013",
+      "file": "backend/eval/data/cord/image/validation_0013.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "45500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.43,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0014",
+      "file": "backend/eval/data/cord/image/validation_0014.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "39600",
+        "pred": "39.60",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 1,
+          "cer_sum": 0.6667
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.418,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "validation_0015",
+      "file": "backend/eval/data/cord/image/validation_0015.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "59400",
+        "pred": "100.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 2,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.611,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "validation_0016",
+      "file": "backend/eval/data/cord/image/validation_0016.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "20000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "text_recall": {
+        "names": {
+          "gold": 0,
+          "found": 0,
+          "cer_sum": 0
+        },
+        "amounts": {
+          "gold": 1,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.942,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0017",
+      "file": "backend/eval/data/cord/image/validation_0017.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "20000",
+        "pred": "80.08",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.1538
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.676,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0018",
+      "file": "backend/eval/data/cord/image/validation_0018.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "25000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 1.7639
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.26,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0019",
+      "file": "backend/eval/data/cord/image/validation_0019.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "42500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 0,
+          "cer_sum": 1.0714
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.318,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0020",
+      "file": "backend/eval/data/cord/image/validation_0020.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "16500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 1.1
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 1.074,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0021",
+      "file": "backend/eval/data/cord/image/validation_0021.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "224908",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 3,
+          "cer_sum": 0.0455
+        },
+        "amounts": {
+          "gold": 5,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.425,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0022",
+      "file": "backend/eval/data/cord/image/validation_0022.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "308000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.7059
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.332,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0023",
+      "file": "backend/eval/data/cord/image/validation_0023.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "20000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.9
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.308,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0024",
+      "file": "backend/eval/data/cord/image/validation_0024.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "80500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 6,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 6,
+          "found": 2,
+          "cer_sum": 1.2853
+        },
+        "amounts": {
+          "gold": 7,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.522,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0025",
+      "file": "backend/eval/data/cord/image/validation_0025.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "207900",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 7,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 7,
+          "found": 0,
+          "cer_sum": 7.0
+        },
+        "amounts": {
+          "gold": 8,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.867,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0026",
+      "file": "backend/eval/data/cord/image/validation_0026.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "35000",
+        "pred": "6.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 5,
+        "pred_count": 1,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 5,
+          "found": 0,
+          "cer_sum": 3.4542
+        },
+        "amounts": {
+          "gold": 6,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.419,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "validation_0027",
+      "file": "backend/eval/data/cord/image/validation_0027.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "17999",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.6667
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 5.937,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0028",
+      "file": "backend/eval/data/cord/image/validation_0028.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "22000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.358,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0029",
+      "file": "backend/eval/data/cord/image/validation_0029.png",
+      "source_type": "photo",
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.5455
+        },
+        "amounts": {
+          "gold": 1,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.708,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0030",
+      "file": "backend/eval/data/cord/image/validation_0030.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "21000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 2.035,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0031",
+      "file": "backend/eval/data/cord/image/validation_0031.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "24000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.6522
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.306,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0032",
+      "file": "backend/eval/data/cord/image/validation_0032.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "6000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.328,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0033",
+      "file": "backend/eval/data/cord/image/validation_0033.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "57500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.346,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0034",
+      "file": "backend/eval/data/cord/image/validation_0034.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "283338",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 4,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 5,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.417,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0035",
+      "file": "backend/eval/data/cord/image/validation_0035.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "304326",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 3,
+          "cer_sum": 0.0455
+        },
+        "amounts": {
+          "gold": 5,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 1.297,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0036",
+      "file": "backend/eval/data/cord/image/validation_0036.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "18999",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.269,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0037",
+      "file": "backend/eval/data/cord/image/validation_0037.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "70000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.356,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0038",
+      "file": "backend/eval/data/cord/image/validation_0038.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "20000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.92,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0039",
+      "file": "backend/eval/data/cord/image/validation_0039.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "97900",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 5,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 5,
+          "found": 3,
+          "cer_sum": 1.3333
+        },
+        "amounts": {
+          "gold": 6,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 1.322,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0040",
+      "file": "backend/eval/data/cord/image/validation_0040.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "379500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 0,
+          "cer_sum": 0.8878
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.478,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0041",
+      "file": "backend/eval/data/cord/image/validation_0041.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "2352460",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 8,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 8,
+          "found": 2,
+          "cer_sum": 1.5051
+        },
+        "amounts": {
+          "gold": 9,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.763,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0042",
+      "file": "backend/eval/data/cord/image/validation_0042.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "53000",
+        "pred": "52.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 1,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 3,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 4
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.407,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "validation_0043",
+      "file": "backend/eval/data/cord/image/validation_0043.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "278000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 1,
+          "cer_sum": 0.1333
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.663,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0044",
+      "file": "backend/eval/data/cord/image/validation_0044.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "17999",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.6667
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 5.903,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0045",
+      "file": "backend/eval/data/cord/image/validation_0045.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "287760",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 0,
+          "cer_sum": 4.0
+        },
+        "amounts": {
+          "gold": 5,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.311,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0046",
+      "file": "backend/eval/data/cord/image/validation_0046.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "22000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.306,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0047",
+      "file": "backend/eval/data/cord/image/validation_0047.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "42000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.455,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0048",
+      "file": "backend/eval/data/cord/image/validation_0048.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "61500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 1,
+          "cer_sum": 0.6389
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.398,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0049",
+      "file": "backend/eval/data/cord/image/validation_0049.png",
+      "source_type": "photo",
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 2,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 1,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.426,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "validation_0050",
+      "file": "backend/eval/data/cord/image/validation_0050.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "26000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.313,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0051",
+      "file": "backend/eval/data/cord/image/validation_0051.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "57200",
+        "pred": "47.20",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 1,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 1,
+          "cer_sum": 0.1333
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.364,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "validation_0052",
+      "file": "backend/eval/data/cord/image/validation_0052.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "56000",
+        "pred": "56.60",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 3,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 3,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.459,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "validation_0053",
+      "file": "backend/eval/data/cord/image/validation_0053.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "31000",
+        "pred": "40.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 2,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 1,
+          "cer_sum": 0.3636
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.383,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "validation_0054",
+      "file": "backend/eval/data/cord/image/validation_0054.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "40000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.306,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0055",
+      "file": "backend/eval/data/cord/image/validation_0055.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "60000",
+        "pred": "60.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 2,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 2,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.355,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "validation_0056",
+      "file": "backend/eval/data/cord/image/validation_0056.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "20000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.273,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0057",
+      "file": "backend/eval/data/cord/image/validation_0057.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "288585",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 0,
+          "cer_sum": 2.263
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.302,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0058",
+      "file": "backend/eval/data/cord/image/validation_0058.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "25000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.25,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0059",
+      "file": "backend/eval/data/cord/image/validation_0059.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "664329",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 9,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 9,
+          "found": 0,
+          "cer_sum": 7.6269
+        },
+        "amounts": {
+          "gold": 10,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.929,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0060",
+      "file": "backend/eval/data/cord/image/validation_0060.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "180000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.6667
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.394,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0061",
+      "file": "backend/eval/data/cord/image/validation_0061.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "8250",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 0.1962
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 1.17,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0062",
+      "file": "backend/eval/data/cord/image/validation_0062.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "62000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 1,
+          "cer_sum": 0.5833
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.54,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0063",
+      "file": "backend/eval/data/cord/image/validation_0063.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "56800",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 0.8333
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.446,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0064",
+      "file": "backend/eval/data/cord/image/validation_0064.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "20000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.8095
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.247,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0065",
+      "file": "backend/eval/data/cord/image/validation_0065.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "54600",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 0.9444
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.961,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0066",
+      "file": "backend/eval/data/cord/image/validation_0066.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "7000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.413,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0067",
+      "file": "backend/eval/data/cord/image/validation_0067.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "76000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.263,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0068",
+      "file": "backend/eval/data/cord/image/validation_0068.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "26000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.5714
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.358,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0069",
+      "file": "backend/eval/data/cord/image/validation_0069.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "174983",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 0,
+          "cer_sum": 3.0
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.421,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0070",
+      "file": "backend/eval/data/cord/image/validation_0070.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "121798",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 3,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 3,
+          "found": 0,
+          "cer_sum": 0.6659
+        },
+        "amounts": {
+          "gold": 4,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.361,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0071",
+      "file": "backend/eval/data/cord/image/validation_0071.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "20000",
+        "pred": "19.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.373,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "validation_0072",
+      "file": "backend/eval/data/cord/image/validation_0072.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "36000",
+        "pred": "36.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 0.7967
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.402,
+      "reported_confidence": 50.0
+    },
+    {
+      "id": "validation_0073",
+      "file": "backend/eval/data/cord/image/validation_0073.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "20000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.251,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0074",
+      "file": "backend/eval/data/cord/image/validation_0074.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "20000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.351,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0075",
+      "file": "backend/eval/data/cord/image/validation_0075.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "66500",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 4,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 5,
+          "found": 5
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.396,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0076",
+      "file": "backend/eval/data/cord/image/validation_0076.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "99000",
+        "pred": "99.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 2,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 1,
+          "cer_sum": 0.0435
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.461,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "validation_0077",
+      "file": "backend/eval/data/cord/image/validation_0077.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "5800000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.4545
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.43,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0078",
+      "file": "backend/eval/data/cord/image/validation_0078.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "177870",
+        "pred": "177.87",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 4,
+        "pred_count": 1,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 4,
+          "found": 0,
+          "cer_sum": 1.3358
+        },
+        "amounts": {
+          "gold": 5,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.49,
+      "reported_confidence": 75.0
+    },
+    {
+      "id": "validation_0079",
+      "file": "backend/eval/data/cord/image/validation_0079.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "72000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 7,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 7,
+          "found": 6,
+          "cer_sum": 0.1
+        },
+        "amounts": {
+          "gold": 8,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.386,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0080",
+      "file": "backend/eval/data/cord/image/validation_0080.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "25000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.353,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0081",
+      "file": "backend/eval/data/cord/image/validation_0081.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "276000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 5,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 5,
+          "found": 0,
+          "cer_sum": 5.0
+        },
+        "amounts": {
+          "gold": 6,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.265,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0082",
+      "file": "backend/eval/data/cord/image/validation_0082.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "35000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 2.0
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.264,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0083",
+      "file": "backend/eval/data/cord/image/validation_0083.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "17000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.1
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.365,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0084",
+      "file": "backend/eval/data/cord/image/validation_0084.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "52000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 0.1053
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 3
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.482,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0085",
+      "file": "backend/eval/data/cord/image/validation_0085.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "15000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 8.918,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0086",
+      "file": "backend/eval/data/cord/image/validation_0086.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "26000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.25
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.39,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0087",
+      "file": "backend/eval/data/cord/image/validation_0087.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "29000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.284,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0088",
+      "file": "backend/eval/data/cord/image/validation_0088.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "170000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.3571
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.585,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0089",
+      "file": "backend/eval/data/cord/image/validation_0089.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "29000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.292,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0090",
+      "file": "backend/eval/data/cord/image/validation_0090.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "7000000",
+        "pred": "3500.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.7143
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.331,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0091",
+      "file": "backend/eval/data/cord/image/validation_0091.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "44000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 1.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.326,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0092",
+      "file": "backend/eval/data/cord/image/validation_0092.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "23000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 1,
+          "cer_sum": 0.1111
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.809,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0093",
+      "file": "backend/eval/data/cord/image/validation_0093.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "172000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 0,
+          "cer_sum": 0.475
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.571,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0094",
+      "file": "backend/eval/data/cord/image/validation_0094.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "80100",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.1613
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.393,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0095",
+      "file": "backend/eval/data/cord/image/validation_0095.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "30000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 2,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 2,
+          "found": 1,
+          "cer_sum": 0.5
+        },
+        "amounts": {
+          "gold": 3,
+          "found": 1
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.433,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0096",
+      "file": "backend/eval/data/cord/image/validation_0096.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "12750",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "text_recall": {
+        "names": {
+          "gold": 0,
+          "found": 0,
+          "cer_sum": 0
+        },
+        "amounts": {
+          "gold": 1,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.258,
+      "reported_confidence": 0.0
+    },
+    {
+      "id": "validation_0097",
+      "file": "backend/eval/data/cord/image/validation_0097.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "25000",
+        "pred": "30.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.0909
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.297,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0098",
+      "file": "backend/eval/data/cord/image/validation_0098.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "100000",
+        "pred": null,
+        "correct": false,
+        "present": false
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 0,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 0,
+          "cer_sum": 0.7368
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 0
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.27,
+      "reported_confidence": 25.0
+    },
+    {
+      "id": "validation_0099",
+      "file": "backend/eval/data/cord/image/validation_0099.png",
+      "source_type": "photo",
+      "total": {
+        "gold": "39000",
+        "pred": "50.00",
+        "correct": false,
+        "present": true
+      },
+      "line_items": {
+        "gold_count": 1,
+        "pred_count": 1,
+        "matched": 0,
+        "matched_amount_only": 0
+      },
+      "text_recall": {
+        "names": {
+          "gold": 1,
+          "found": 1,
+          "cer_sum": 0.0
+        },
+        "amounts": {
+          "gold": 2,
+          "found": 2
+        }
+      },
+      "all_key_fields_correct": false,
+      "seconds": 0.429,
+      "reported_confidence": 75.0
+    }
+  ]
+}
