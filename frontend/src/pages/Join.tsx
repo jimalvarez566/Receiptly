@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useAuth } from '@/auth/authContext'
 import { useTenant } from '@/auth/tenantContext'
-import { api } from '@/lib/api'
+import { api, ApiError } from '@/lib/api'
 import type { InvitationAccepted, InvitationPreview } from '@/lib/api'
 import { parseUtc } from '@/lib/dates'
 import { clearPendingInvite, getPendingInvite, setPendingInvite } from '@/lib/pendingInvite'
@@ -32,7 +32,9 @@ export function Join() {
   const [fragmentToken] = useState(readFragmentToken)
   const [token] = useState(() => fragmentToken ?? getPendingInvite())
   const [preview, setPreview] = useState<InvitationPreview | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<{ message: string; final: boolean } | null>(null)
+  const [attempt, setAttempt] = useState(0)
+  const [joinedNoRefresh, setJoinedNoRefresh] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [accepted, setAccepted] = useState<InvitationAccepted | null>(null)
 
@@ -57,41 +59,79 @@ export function Join() {
       })
       .catch((err) => {
         if (!active) return
-        clearPendingInvite()
-        setError(err instanceof Error ? err.message : 'Could not load this invitation')
+        // Only a definitive answer (not found / gone) discards the token.
+        const final = err instanceof ApiError && (err.status === 404 || err.status === 410)
+        if (final) clearPendingInvite()
+        setError({
+          message: err instanceof Error ? err.message : 'Could not load this invitation',
+          final,
+        })
       })
     return () => {
       active = false
     }
-  }, [token])
+  }, [token, attempt])
+
+  const onRetry = () => {
+    setError(null)
+    setAttempt((a) => a + 1)
+  }
 
   const loggedIn = session != null
 
   const onJoin = async () => {
     if (!token) return
     setBusy(true)
+    let result: InvitationAccepted
     try {
-      const result = await api.acceptInvitation(token)
-      await refreshMemberships()
-      clearPendingInvite()
-      if (result.already_member) {
-        setAccepted(result)
-        setBusy(false)
-        return
-      }
-      setActiveTenant(result.tenant_id)
-      navigate('/', { replace: true })
+      result = await api.acceptInvitation(token)
     } catch (err) {
+      // 401: api.ts is already signing out and redirecting to /login. Keep the
+      // token so the invite resumes after login.
+      if (err instanceof ApiError && err.status === 401) return
       clearPendingInvite()
-      setError(err instanceof Error ? err.message : 'Could not accept this invitation')
+      setError({
+        message: err instanceof Error ? err.message : 'Could not accept this invitation',
+        final: true,
+      })
       setBusy(false)
+      return
     }
+    clearPendingInvite()
+    try {
+      await refreshMemberships()
+    } catch {
+      setJoinedNoRefresh(result.tenant_name)
+      setBusy(false)
+      return
+    }
+    if (result.already_member) {
+      setAccepted(result)
+      setBusy(false)
+      return
+    }
+    setActiveTenant(result.tenant_id)
+    navigate('/', { replace: true })
   }
 
   const onContinueMember = () => {
     if (!accepted) return
     setActiveTenant(accepted.tenant_id)
     navigate('/', { replace: true })
+  }
+
+  if (joinedNoRefresh) {
+    return (
+      <Panel>
+        <p className="text-sm">
+          You joined {joinedNoRefresh}, but we couldn't load your businesses. Reload the page to
+          continue.
+        </p>
+        <Button size="lg" onClick={() => window.location.reload()}>
+          Reload
+        </Button>
+      </Panel>
+    )
   }
 
   if (accepted) {
@@ -119,10 +159,16 @@ export function Join() {
   if (error) {
     return (
       <Panel>
-        <p className="text-sm text-red-400">{error}</p>
-        <Link to="/" replace className="text-sm underline">
-          Continue to the app
-        </Link>
+        <p className="text-sm text-red-400">{error.message}</p>
+        {error.final ? (
+          <Link to="/" replace className="text-sm underline">
+            Continue to the app
+          </Link>
+        ) : (
+          <Button size="lg" onClick={onRetry}>
+            Try again
+          </Button>
+        )}
       </Panel>
     )
   }

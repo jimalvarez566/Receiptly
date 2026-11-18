@@ -22,62 +22,38 @@ function AdminOnly({ children }: { children: React.ReactNode }) {
   return isAdmin ? <>{children}</> : <Navigate to="/" replace />
 }
 
-// A logged-in user with a stored invite token is sent to /join once; Join clears
-// the token, so after a join (or an error) this no longer redirects.
-function PendingInviteRedirect() {
-  const { pathname } = useLocation()
-  if (pathname !== '/join' && getPendingInvite() != null) return <Navigate to="/join" replace />
-  return null
-}
-
 function AuthedRoutes() {
   const { loading, activeTenantId } = useTenant()
+  const { pathname } = useLocation()
 
   if (loading) return <FullScreenSpinner />
 
+  // A stored invite token sends the user to /join; Join clears it when done.
+  if (pathname !== '/join' && getPendingInvite() != null) return <Navigate to="/join" replace />
+
   if (activeTenantId == null) {
     return (
-      <>
-        <PendingInviteRedirect />
-        <Routes>
-          <Route path="/join" element={<Join />} />
-          <Route path="*" element={<SelectBusiness />} />
-        </Routes>
-      </>
+      <Routes>
+        <Route path="/join" element={<Join />} />
+        <Route path="*" element={<SelectBusiness />} />
+      </Routes>
     )
   }
 
   return (
-    <>
-      <PendingInviteRedirect />
-      <Routes>
-        <Route path="/join" element={<Join />} />
-        <Route path="/select-business" element={<SelectBusiness />} />
-        <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/receipts" element={<ReceiptsList />} />
-          <Route path="/receipts/:id" element={<ReceiptDetail />} />
-          <Route path="/upload" element={<Upload />} />
-          <Route
-            path="/policies"
-            element={
-              <AdminOnly>
-                <Policies />
-              </AdminOnly>
-            }
-          />
-          <Route
-            path="/team"
-            element={
-              <AdminOnly>
-                <Team />
-              </AdminOnly>
-            }
-          />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </>
+    <Routes>
+      <Route path="/join" element={<Join />} />
+      <Route path="/select-business" element={<SelectBusiness />} />
+      <Route element={<Layout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/receipts" element={<ReceiptsList />} />
+        <Route path="/receipts/:id" element={<ReceiptDetail />} />
+        <Route path="/upload" element={<Upload />} />
+        <Route path="/policies" element={<AdminOnly><Policies /></AdminOnly>} />
+        <Route path="/team" element={<AdminOnly><Team /></AdminOnly>} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
 
