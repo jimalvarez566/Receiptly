@@ -96,6 +96,7 @@ async def test_other_business_receipt_is_404(client, db_session, user_a_id, user
     r = await _receipt(db_session, t2, user_b_id)
     resp = await client.get(_url(r.id), headers=_h(user_a_id, t1.id))
     assert resp.status_code == 404
+    assert resp.json()["detail"] == "Receipt not found"
     assert len(signer) == 0
 
 
@@ -142,7 +143,7 @@ async def test_storage_failure_is_502_with_readable_message(
     r = await _receipt(db_session, t, user_b_id)
     resp = await client.get(_url(r.id), headers=_h(user_a_id, t.id))
     assert resp.status_code == 502
-    assert resp.json()["detail"] == "Couldn't load the receipt image. Please try again."
+    assert resp.json()["detail"] == "Couldn't load the receipt image. Try again."
 
 
 async def test_signed_url_and_token_are_not_logged(

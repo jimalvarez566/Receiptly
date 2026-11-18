@@ -317,7 +317,7 @@ async def get_receipt_image_url(
             "Signing receipt image URL failed for receipt %s: %s", receipt_id, type(exc).__name__
         )
         raise HTTPException(
-            status_code=502, detail="Couldn't load the receipt image. Please try again."
+            status_code=502, detail="Couldn't load the receipt image. Try again."
         )
     response.headers["Cache-Control"] = "no-store"
     kind = "pdf" if receipt.image_path.lower().endswith(".pdf") else "image"
