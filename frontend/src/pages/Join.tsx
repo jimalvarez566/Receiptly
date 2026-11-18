@@ -72,6 +72,12 @@ export function Join() {
     }
   }, [token, attempt])
 
+  // Escape hatch: clear the token first so the redirect gate doesn't bounce back.
+  const onDiscard = () => {
+    clearPendingInvite()
+    navigate(session != null ? '/' : '/login', { replace: true })
+  }
+
   const onRetry = () => {
     setError(null)
     setAttempt((a) => a + 1)
@@ -165,9 +171,14 @@ export function Join() {
             Continue to the app
           </Link>
         ) : (
-          <Button size="lg" onClick={onRetry}>
-            Try again
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button size="lg" onClick={onRetry}>
+              Try again
+            </Button>
+            <Button size="lg" variant="outline" onClick={onDiscard}>
+              Discard invite and continue
+            </Button>
+          </div>
         )}
       </Panel>
     )
