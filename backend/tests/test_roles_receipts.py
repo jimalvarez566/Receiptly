@@ -292,3 +292,71 @@ async def test_description_redaction_does_not_modify_database_row(
     db_session.expire_all()
     row = (await db_session.execute(select(FraudFlag).where(FraudFlag.id == flag_id))).scalar_one()
     assert row.description == original
+
+
+async def _anomaly_flag(db_session, receipt, target_id):
+    """Shape of the historical content-match flag (matching_receipt_id key)."""
+    f = FraudFlag(
+        receipt_id=receipt.id, flag_type="anomaly", severity="high",
+        description=(
+            f"Same merchant, date and total as receipt #{target_id}, submitted by "
+            "another employee ('Cafe', 2026-01-01, $10.00) (rule: 'Content match')."
+        ),
+        details={
+            "signal": "content_match", "matching_receipt_id": target_id,
+            "same_submitter": False, "merchant": "Cafe",
+        },
+        confidence_score=90,
+    )
+    db_session.add(f)
+    await db_session.commit()
+    return f
+
+
+async def test_member_content_match_flag_redacted_for_colleague_receipt(
+    client, db_session, user_a_id, user_b_id
+):
+    t = await _seed_team(db_session, user_a_id, user_b_id)
+    colleague = await _receipt(db_session, t, user_a_id)
+    mine = await _receipt(db_session, t, user_b_id)
+    await _anomaly_flag(db_session, mine, colleague.id)
+    resp = await client.get(f"/api/v1/receipts/{mine.id}", headers=_h(user_b_id, t.id))
+    flag = resp.json()["fraud_flags"][0]
+    assert "matching_receipt_id" not in flag["details"]
+    assert flag["details"]["signal"] == "content_match"  # rest of the flag survives
+    assert f"#{colleague.id}" not in flag["description"]
+    assert "another receipt in your business" in flag["description"]
+
+
+async def test_member_content_match_flag_kept_for_own_receipt(
+    client, db_session, user_a_id, user_b_id
+):
+    t = await _seed_team(db_session, user_a_id, user_b_id)
+    first = await _receipt(db_session, t, user_b_id)
+    second = await _receipt(db_session, t, user_b_id)
+    f = await _anomaly_flag(db_session, second, first.id)
+    expected = f.description
+    resp = await client.get(f"/api/v1/receipts/{second.id}", headers=_h(user_b_id, t.id))
+    flag = resp.json()["fraud_flags"][0]
+    assert flag["details"]["matching_receipt_id"] == first.id
+    assert flag["description"] == expected
+
+
+async def test_content_match_redaction_does_not_hit_prefix_ids(
+    client, db_session, user_a_id, user_b_id
+):
+    """Redacting receipt #N must not mangle a different id that starts with N's digits."""
+    t = await _seed_team(db_session, user_a_id, user_b_id)
+    colleague = await _receipt(db_session, t, user_a_id)
+    mine = await _receipt(db_session, t, user_b_id)
+    cid = colleague.id
+    f = FraudFlag(
+        receipt_id=mine.id, flag_type="anomaly", severity="high",
+        description=f"Matches receipt #{cid} and also receipt #{cid}2.",
+        details={"matching_receipt_id": cid}, confidence_score=90,
+    )
+    db_session.add(f)
+    await db_session.commit()
+    resp = await client.get(f"/api/v1/receipts/{mine.id}", headers=_h(user_b_id, t.id))
+    desc = resp.json()["fraud_flags"][0]["description"]
+    assert desc == f"Matches another receipt in your business and also receipt #{cid}2."

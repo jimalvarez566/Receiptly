@@ -1,3 +1,5 @@
+import re
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -5,7 +7,9 @@ from app.auth import ROLE_ADMIN, RequestContext
 from app.models.receipt import Receipt
 from app.schemas.receipt import ReceiptResponse
 
-_KEY = "duplicate_receipt_id"
+# Flag-details keys that point at another receipt: the image-duplicate check
+# and the historical content-match anomaly.
+_KEYS = ("duplicate_receipt_id", "matching_receipt_id")
 
 
 def _as_int(value) -> int | None:
@@ -21,8 +25,9 @@ async def present_receipts(
     """Build response models for receipts.
 
     Members must not learn about colleagues' receipts through duplicate flags,
-    so `duplicate_receipt_id` is dropped from flag details unless it points at
-    one of the member's own receipts. Redaction only touches the response
+    so receipt references (see `_KEYS`) are dropped from flag details, and the
+    "receipt #N" in the flag text is generalised, unless the reference points
+    at one of the member's own receipts. Redaction only touches the response
     copies; ORM objects (and therefore the database) are never modified.
     """
     responses = [ReceiptResponse.model_validate(r) for r in receipts]
@@ -33,8 +38,9 @@ async def present_receipts(
         i
         for resp in responses
         for flag in resp.fraud_flags
-        if flag.details and _KEY in flag.details
-        and (i := _as_int(flag.details[_KEY])) is not None
+        for key in _KEYS
+        if flag.details and key in flag.details
+        and (i := _as_int(flag.details[key])) is not None
     }
     own: set[int] = set()
     if ids:
@@ -49,12 +55,17 @@ async def present_receipts(
 
     for resp in responses:
         for flag in resp.fraud_flags:
-            if flag.details and _KEY in flag.details:
-                target = _as_int(flag.details[_KEY])
-                if target not in own:
-                    flag.details = {k: v for k, v in flag.details.items() if k != _KEY}
-                    if flag.description and target is not None:
-                        flag.description = flag.description.replace(
-                            f"receipt #{target}", "another receipt in your business"
-                        )
+            for key in _KEYS:
+                if not flag.details or key not in flag.details:
+                    continue
+                target = _as_int(flag.details[key])
+                if target in own:
+                    continue
+                flag.details = {k: v for k, v in flag.details.items() if k != key}
+                if flag.description and target is not None:
+                    flag.description = re.sub(
+                        rf"receipt #{target}\b",
+                        "another receipt in your business",
+                        flag.description,
+                    )
     return responses
