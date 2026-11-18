@@ -5,8 +5,9 @@ import tempfile
 import uuid
 from datetime import datetime
 from pathlib import Path
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Path as PathParam, Query, Request, Response, UploadFile
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy import delete, func, select
@@ -19,7 +20,7 @@ from app.config import settings
 from app.database import get_db
 from app.models.fraud_flag import FraudFlag
 from app.models.receipt import Receipt
-from app.schemas.receipt import ReceiptListResponse, ReceiptResponse, ReviewRequest, ReviewResponse
+from app.schemas.receipt import ReceiptImageUrl, ReceiptListResponse, ReceiptResponse, ReviewRequest, ReviewResponse
 from app.services.duplicate_detector import compute_image_hash
 from app.services.fraud_detection_pipeline import run_fraud_pipeline
 from app.services.gemini_explainer import call_gemini
@@ -295,6 +296,32 @@ async def review_receipt(
     response_data = ReceiptResponse.model_validate(receipt).model_dump()
     response_data["original_receipt_id"] = original_receipt_id
     return response_data
+
+
+@router.get("/{receipt_id}/image-url", response_model=ReceiptImageUrl)
+async def get_receipt_image_url(
+    receipt_id: Annotated[int, PathParam(ge=1, le=2**31 - 1)],
+    response: Response,
+    context: RequestContext = Depends(get_current_context),
+    db: AsyncSession = Depends(get_db),
+) -> ReceiptImageUrl:
+    """Return a short-lived signed URL for the receipt's file (visibility enforced first)."""
+    receipt = await _get_receipt_for(context, receipt_id, db)
+    ttl = settings.RECEIPT_IMAGE_URL_TTL_SECONDS
+    try:
+        url = await supabase_client.create_signed_url(receipt.image_path, ttl)
+    except supabase_client.StorageObjectNotFound:
+        raise HTTPException(status_code=404, detail="Receipt image not found")
+    except Exception as exc:
+        logger.error(
+            "Signing receipt image URL failed for receipt %s: %s", receipt_id, type(exc).__name__
+        )
+        raise HTTPException(
+            status_code=502, detail="Couldn't load the receipt image. Try again."
+        )
+    response.headers["Cache-Control"] = "no-store"
+    kind = "pdf" if receipt.image_path.lower().endswith(".pdf") else "image"
+    return ReceiptImageUrl(url=url, expires_in=ttl, kind=kind)
 
 
 @router.get("/{receipt_id}", response_model=ReceiptResponse)

@@ -72,3 +72,36 @@ async def delete_object(path: str) -> None:
     bucket = settings.SUPABASE_STORAGE_BUCKET
     async with _client() as c:
         await c.delete(_url(f"/storage/v1/object/{bucket}/{path}"))
+
+
+class StorageObjectNotFound(Exception):
+    """Raised when Storage reports that the requested object does not exist."""
+
+
+async def create_signed_url(path: str, expires_in: int) -> str:
+    """Return an absolute, short-lived signed URL for the object at ``path``.
+
+    Raises ``StorageObjectNotFound`` if the object is missing and ``RuntimeError``
+    for any other failure. The URL, token and response body are never logged.
+    """
+    bucket = settings.SUPABASE_STORAGE_BUCKET
+    async with _client() as c:
+        resp = await c.post(
+            _url(f"/storage/v1/object/sign/{bucket}/{quote(path, safe='/')}"),
+            json={"expiresIn": expires_in},
+        )
+
+    if resp.status_code == 404:
+        raise StorageObjectNotFound()
+    if resp.status_code == 400 and "not found" in resp.text.lower():
+        raise StorageObjectNotFound()
+    if resp.status_code >= 300:
+        raise RuntimeError(f"Storage sign failed: {resp.status_code}")
+
+    try:
+        signed = resp.json().get("signedURL")
+    except (ValueError, AttributeError):
+        raise RuntimeError("Storage sign returned an invalid body") from None
+    if not isinstance(signed, str):
+        raise RuntimeError("Storage sign returned an invalid body")
+    return f"{settings.SUPABASE_URL.rstrip('/')}/storage/v1{signed}"

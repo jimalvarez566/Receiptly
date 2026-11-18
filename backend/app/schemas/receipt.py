@@ -86,3 +86,9 @@ class ReviewResponse(ReceiptResponse):
     reviewers distinguish the original from a re-submission.
     """
     original_receipt_id: int | None = None
+
+
+class ReceiptImageUrl(BaseModel):
+    url: str
+    expires_in: int
+    kind: Literal["image", "pdf"]

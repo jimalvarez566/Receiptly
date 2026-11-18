@@ -5,6 +5,7 @@ import { useRole } from '@/auth/tenantContext'
 import type { Receipt } from '@/lib/api'
 import { RiskBadge } from '@/components/RiskBadge'
 import { StatusBadge } from '@/components/StatusBadge'
+import { ReceiptImage } from '@/components/ReceiptImage'
 
 function fmt(amount: number | string | null) {
   if (amount == null) return '—'
@@ -157,6 +158,9 @@ export function ReceiptDetail() {
           <p className="mono text-xs text-[#404040]">#{receipt.id}</p>
         </div>
       </div>
+
+      {/* Receipt file */}
+      <ReceiptImage receiptId={receipt.id} />
 
       {/* OCR fields */}
       <section className="border border-[#262626] rounded mb-4">
