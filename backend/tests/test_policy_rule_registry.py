@@ -118,3 +118,21 @@ def test_known_rule_types_has_the_five_types():
             "short_window_duplicate",
         }
     )
+
+
+@pytest.mark.parametrize("huge", [10**400, -(10**400)])
+def test_huge_integers_raise_policy_rule_error_not_overflow(huge):
+    with pytest.raises(PolicyRuleError, match="limit"):
+        validate_parameters("amount_limit", {"limit": huge})
+    with pytest.raises(PolicyRuleError, match="min_amount"):
+        validate_parameters("round_number", {"min_amount": huge})
+    with pytest.raises(PolicyRuleError, match="window_hours"):
+        validate_parameters(
+            "short_window_duplicate",
+            {"window_hours": huge, "amount_tolerance_pct": 10},
+        )
+    with pytest.raises(PolicyRuleError, match="amount_tolerance_pct"):
+        validate_parameters(
+            "short_window_duplicate",
+            {"window_hours": 48, "amount_tolerance_pct": huge},
+        )

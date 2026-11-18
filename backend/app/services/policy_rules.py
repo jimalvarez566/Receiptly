@@ -20,7 +20,7 @@ def _is_number(value) -> bool:
     return (
         isinstance(value, (int, float))
         and not isinstance(value, bool)
-        and math.isfinite(value)
+        and (isinstance(value, int) or math.isfinite(value))
     )
 
 
