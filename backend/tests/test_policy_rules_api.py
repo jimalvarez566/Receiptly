@@ -66,6 +66,24 @@ async def test_admin_lists_the_business_rules(client, db_session, user_a_id, use
     assert {"id", "rule_name", "rule_type", "severity", "parameters", "is_active", "created_at"} <= set(body[0])
 
 
+async def test_list_excludes_other_business_rules(client, db_session, user_a_id, user_b_id):
+    t1 = await _seed_team(db_session, user_a_id, user_b_id, name="One")
+    t2 = await _seed_team(db_session, user_b_id, user_a_id, name="Two")
+    extra = PolicyRule(
+        tenant_id=t2.id, rule_name="B-only secret rule", rule_type="future_date",
+        severity="low", parameters={}, is_active=True,
+    )
+    db_session.add(extra)
+    await db_session.commit()
+    resp = await client.get(URL, headers=_h(user_a_id, t1.id))
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body) == 6
+    b_ids = {r.id for r in await _rules(db_session, t2.id)}
+    assert not {r["id"] for r in body} & b_ids
+    assert "B-only secret rule" not in {r["rule_name"] for r in body}
+
+
 async def test_member_gets_exact_403_on_all_four_endpoints(client, db_session, user_a_id, user_b_id):
     t = await _seed_team(db_session, user_a_id, user_b_id)
     h = _h(user_b_id, t.id)
@@ -216,6 +234,21 @@ async def test_other_business_rule_is_404_and_unchanged(client, db_session, user
     await db_session.refresh(other)
     assert other.is_active is True
     assert other.tenant_id == t2.id
+
+
+async def test_out_of_range_rule_id_is_not_a_500(client, db_session, user_a_id, user_b_id):
+    t = await _seed_team(db_session, user_a_id, user_b_id)
+    h = _h(user_a_id, t.id)
+    for bad in ("99999999999999999999", "2147483648", "0"):
+        resp = await client.patch(f"{URL}/{bad}", headers=h, json={"is_active": False})
+        assert resp.status_code == 422
+        resp = await client.delete(f"{URL}/{bad}", headers=h)
+        assert resp.status_code == 422
+    mh = _h(user_b_id, t.id)
+    resp = await client.delete(f"{URL}/99999999999999999999", headers=mh)
+    assert resp.status_code == 403
+    resp = await client.patch(f"{URL}/99999999999999999999", headers=mh, json={"is_active": False})
+    assert resp.status_code == 403
 
 
 async def test_delete_removes_rule_and_returns_204(client, db_session, user_a_id, user_b_id):

@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, Path, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,6 +19,9 @@ from app.services.policy_rules import (
 )
 
 router = APIRouter(prefix="/policy-rules", tags=["policy-rules"])
+
+# Bounded to int32 so huge ids return 422 instead of a DB DataError (500).
+RuleId = Annotated[int, Path(ge=1, le=2**31 - 1)]
 
 
 async def _get_rule(db: AsyncSession, context: RequestContext, rule_id: int) -> PolicyRule:
@@ -70,7 +75,7 @@ async def create_policy_rule(
 
 @router.patch("/{rule_id}", response_model=PolicyRuleResponse)
 async def update_policy_rule(
-    rule_id: int,
+    rule_id: RuleId,
     body: PolicyRuleUpdate,
     context: RequestContext = Depends(require_admin("edit policies")),
     db: AsyncSession = Depends(get_db),
@@ -99,7 +104,7 @@ async def update_policy_rule(
 
 @router.delete("/{rule_id}", status_code=204)
 async def delete_policy_rule(
-    rule_id: int,
+    rule_id: RuleId,
     context: RequestContext = Depends(require_admin("edit policies")),
     db: AsyncSession = Depends(get_db),
 ) -> Response:

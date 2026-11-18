@@ -122,6 +122,7 @@ export function PolicyRuleForm({ mode, rule, onSaved, onCancel }: Props) {
         <input
           id="rule-name"
           className={input}
+          maxLength={100}
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
