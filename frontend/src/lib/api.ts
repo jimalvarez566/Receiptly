@@ -114,17 +114,22 @@ async function toApiError(res: Response): Promise<ApiError> {
   return new ApiError(res.status, message)
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  opts: { auth?: boolean } = {},
+): Promise<T> {
+  const auth = opts.auth !== false
   const res = await fetch(`${BASE_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      ...(await authHeaders()),
+      ...(auth ? await authHeaders() : {}),
       ...init?.headers,
     },
   })
   if (!res.ok) {
-    await handleUnauthorized(res)
+    if (auth) await handleUnauthorized(res)
     throw await toApiError(res)
   }
   if (res.status === 204) return undefined as T
@@ -225,8 +230,13 @@ export const api = {
     request(`/api/v1/tenants/${tenantId}/invitations/${id}`, { method: 'DELETE' }),
 
   // The token travels in the JSON body only, never in a URL.
+  // Public endpoint: no auth headers and no 401 sign-out handling.
   previewInvitation: (token: string): Promise<InvitationPreview> =>
-    request('/api/v1/invitations/preview', { method: 'POST', body: JSON.stringify({ token }) }),
+    request(
+      '/api/v1/invitations/preview',
+      { method: 'POST', body: JSON.stringify({ token }) },
+      { auth: false },
+    ),
 
   acceptInvitation: (token: string): Promise<InvitationAccepted> =>
     request('/api/v1/invitations/accept', { method: 'POST', body: JSON.stringify({ token }) }),

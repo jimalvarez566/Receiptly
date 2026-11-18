@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '@/lib/api'
 import type { Invitation, InviteRole, InviteStatus } from '@/lib/api'
 import { useTenant } from '@/auth/tenantContext'
+import { parseUtc } from '@/lib/dates'
 
 const STATUS_STYLES: Record<InviteStatus, string> = {
   pending: 'border-green-900 text-green-400',
@@ -10,10 +11,17 @@ const STATUS_STYLES: Record<InviteStatus, string> = {
   expired: 'border-yellow-900 text-yellow-400',
 }
 
-const fmt = (iso: string) => new Date(iso).toLocaleString()
+const fmt = (iso: string) => parseUtc(iso).toLocaleString()
 
 export function Team() {
   const { activeTenantId } = useTenant()
+  if (activeTenantId == null) return null
+  // Keyed by tenant so all state (including any one-time link) resets on switch.
+  return <TeamForTenant key={activeTenantId} tenantId={activeTenantId} />
+}
+
+function TeamForTenant({ tenantId }: { tenantId: number }) {
+  const activeTenantId = tenantId
   const [invites, setInvites] = useState<Invitation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -23,35 +31,64 @@ export function Team() {
   const [copied, setCopied] = useState(false)
   const [confirmId, setConfirmId] = useState<number | null>(null)
   const [busyId, setBusyId] = useState<number | null>(null)
+  const [selectHint, setSelectHint] = useState(false)
   const linkRef = useRef<HTMLInputElement>(null)
+  const currentTenant = useRef(tenantId)
+  const seq = useRef(0)
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  useEffect(() => {
+    currentTenant.current = tenantId
+    return () => {
+      currentTenant.current = null
+      if (copyTimer.current) clearTimeout(copyTimer.current)
+    }
+  }, [tenantId])
+
+  // Latest-wins refresh; ignores results for a tenant that is no longer active.
   const refresh = useCallback(async () => {
-    if (activeTenantId == null) return
+    const forTenant = activeTenantId
+    const mine = ++seq.current
     try {
-      setInvites(await api.listInvitations(activeTenantId))
+      const data = await api.listInvitations(forTenant)
+      if (currentTenant.current !== forTenant || mine !== seq.current) return
+      setInvites(data)
     } catch (err) {
+      if (currentTenant.current !== forTenant || mine !== seq.current) return
       setError(err instanceof Error ? err.message : 'Failed to load invitations')
     } finally {
-      setLoading(false)
+      if (currentTenant.current === forTenant && mine === seq.current) setLoading(false)
     }
   }, [activeTenantId])
 
   useEffect(() => {
-    if (activeTenantId == null) return
+    let active = true
+    const mine = ++seq.current
     api
       .listInvitations(activeTenantId)
-      .then((data) => setInvites(data))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load invitations'))
-      .finally(() => setLoading(false))
+      .then((data) => {
+        if (active && mine === seq.current) setInvites(data)
+      })
+      .catch((err) => {
+        if (active && mine === seq.current)
+          setError(err instanceof Error ? err.message : 'Failed to load invitations')
+      })
+      .finally(() => {
+        if (active && mine === seq.current) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
   }, [activeTenantId])
 
   const create = async () => {
-    if (activeTenantId == null) return
     setError(null)
     setCopied(false)
+    setSelectHint(false)
     setCreating(true)
     try {
       const created = await api.createInvitation(activeTenantId, role)
+      if (currentTenant.current !== activeTenantId) return
       setLink(`${window.location.origin}/join#token=${created.token}`)
       await refresh()
     } catch (err) {
@@ -64,25 +101,31 @@ export function Team() {
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(link ?? '')
+      setSelectHint(false)
       setCopied(true)
+      if (copyTimer.current) clearTimeout(copyTimer.current)
+      copyTimer.current = setTimeout(() => setCopied(false), 2000)
     } catch {
       linkRef.current?.focus()
       linkRef.current?.select()
+      setSelectHint(true)
     }
   }
 
   const revoke = async (inv: Invitation) => {
-    if (activeTenantId == null) return
     setError(null)
     setBusyId(inv.id)
     try {
       await api.revokeInvitation(activeTenantId, inv.id)
-      setConfirmId(null)
-      await refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to revoke invite link')
+      if (currentTenant.current === activeTenantId)
+        setError(err instanceof Error ? err.message : 'Failed to revoke invite link')
     } finally {
-      setBusyId(null)
+      if (currentTenant.current === activeTenantId) {
+        setConfirmId(null)
+        setBusyId(null)
+        await refresh()
+      }
     }
   }
 
@@ -131,6 +174,7 @@ export function Team() {
                 {copied ? 'Copied' : 'Copy'}
               </button>
             </div>
+            {selectHint && <p className="text-xs text-yellow-400">Press Ctrl+C / ⌘+C to copy</p>}
             <p className="text-xs text-[#737373]">
               This link is shown once. Anyone who has it can join once, until it expires or you revoke it.
             </p>
