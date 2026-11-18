@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from '@/auth/AuthProvider'
 import { useAuth } from '@/auth/authContext'
 import { TenantProvider } from '@/auth/TenantProvider'
@@ -14,10 +14,20 @@ import { ReceiptDetail } from '@/pages/ReceiptDetail'
 import { Dashboard } from '@/pages/Dashboard'
 import { Policies } from '@/pages/Policies'
 import { Team } from '@/pages/Team'
+import { Join } from '@/pages/Join'
+import { getPendingInvite } from '@/lib/pendingInvite'
 
 function AdminOnly({ children }: { children: React.ReactNode }) {
   const { isAdmin } = useRole()
   return isAdmin ? <>{children}</> : <Navigate to="/" replace />
+}
+
+// A logged-in user with a stored invite token is sent to /join once; Join clears
+// the token, so after a join (or an error) this no longer redirects.
+function PendingInviteRedirect() {
+  const { pathname } = useLocation()
+  if (pathname !== '/join' && getPendingInvite() != null) return <Navigate to="/join" replace />
+  return null
 }
 
 function AuthedRoutes() {
@@ -27,25 +37,47 @@ function AuthedRoutes() {
 
   if (activeTenantId == null) {
     return (
-      <Routes>
-        <Route path="*" element={<SelectBusiness />} />
-      </Routes>
+      <>
+        <PendingInviteRedirect />
+        <Routes>
+          <Route path="/join" element={<Join />} />
+          <Route path="*" element={<SelectBusiness />} />
+        </Routes>
+      </>
     )
   }
 
   return (
-    <Routes>
-      <Route path="/select-business" element={<SelectBusiness />} />
-      <Route element={<Layout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/receipts" element={<ReceiptsList />} />
-        <Route path="/receipts/:id" element={<ReceiptDetail />} />
-        <Route path="/upload" element={<Upload />} />
-        <Route path="/policies" element={<AdminOnly><Policies /></AdminOnly>} />
-        <Route path="/team" element={<AdminOnly><Team /></AdminOnly>} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <PendingInviteRedirect />
+      <Routes>
+        <Route path="/join" element={<Join />} />
+        <Route path="/select-business" element={<SelectBusiness />} />
+        <Route element={<Layout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/receipts" element={<ReceiptsList />} />
+          <Route path="/receipts/:id" element={<ReceiptDetail />} />
+          <Route path="/upload" element={<Upload />} />
+          <Route
+            path="/policies"
+            element={
+              <AdminOnly>
+                <Policies />
+              </AdminOnly>
+            }
+          />
+          <Route
+            path="/team"
+            element={
+              <AdminOnly>
+                <Team />
+              </AdminOnly>
+            }
+          />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   )
 }
 
@@ -59,6 +91,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/join" element={<Join />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     )
