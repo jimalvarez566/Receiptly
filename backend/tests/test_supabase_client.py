@@ -133,3 +133,116 @@ async def test_create_signed_url_malformed_body_raises_runtime_error(sign_transp
     sign_transport["response"] = response
     with pytest.raises(RuntimeError):
         await supabase_client.create_signed_url("1/abc.png", 300)
+
+
+# --- lookup pagination -------------------------------------------------------
+
+def _paged_transport(monkeypatch, pages, total=None):
+    """Serve ``pages`` (list of lists of user dicts) for GoTrue admin list calls.
+
+    Like the real service, replies carry an ``X-Total-Count`` header when
+    ``total`` is given. Every request is recorded so tests can assert how many
+    pages were fetched.
+    """
+    requests = []
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        page = int(request.url.params.get("page", "1"))
+        users = pages[page - 1] if page - 1 < len(pages) else []
+        headers = {"X-Total-Count": str(total)} if total is not None else {}
+        return httpx.Response(
+            200, json={"aud": "authenticated", "users": users}, headers=headers
+        )
+
+    monkeypatch.setattr(
+        supabase_client,
+        "_client",
+        lambda: httpx.AsyncClient(transport=httpx.MockTransport(_handler)),
+    )
+    return requests
+
+
+def _users(n, start=0):
+    return [
+        {"id": f"00000000-0000-0000-0000-{i:012d}", "email": f"user{i}@x.com"}
+        for i in range(start, start + n)
+    ]
+
+
+async def test_lookup_finds_user_on_a_later_page(monkeypatch):
+    size = supabase_client.LOOKUP_PAGE_SIZE
+    target = {"id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "email": "later@x.com"}
+    requests = _paged_transport(monkeypatch, [_users(size), [target]], total=size + 1)
+
+    uid = await supabase_client.lookup_user_id_by_email("later@x.com")
+
+    assert str(uid) == target["id"]
+    assert [r.url.params["page"] for r in requests] == ["1", "2"]
+    assert all(r.url.params["per_page"] == str(size) for r in requests)
+
+
+async def test_lookup_stops_once_the_total_count_is_reached(monkeypatch):
+    requests = _paged_transport(monkeypatch, [_users(3)], total=3)
+
+    assert await supabase_client.lookup_user_id_by_email("nobody@x.com") is None
+    assert len(requests) == 1
+
+
+async def test_lookup_without_a_total_header_stops_on_an_empty_page(monkeypatch):
+    requests = _paged_transport(monkeypatch, [_users(3), []])
+
+    assert await supabase_client.lookup_user_id_by_email("nobody@x.com") is None
+    assert len(requests) == 2
+
+
+async def test_lookup_survives_a_server_that_caps_the_page_size(monkeypatch):
+    # Asked for LOOKUP_PAGE_SIZE per page but the server returns only 50 at a time.
+    target = {"id": "cccccccc-cccc-cccc-cccc-cccccccccccc", "email": "far@x.com"}
+    requests = _paged_transport(
+        monkeypatch, [_users(50), _users(50, start=50), [target]], total=101
+    )
+
+    uid = await supabase_client.lookup_user_id_by_email("far@x.com")
+
+    assert str(uid) == target["id"]
+    assert len(requests) == 3
+
+
+async def test_lookup_returns_match_without_fetching_further_pages(monkeypatch):
+    size = supabase_client.LOOKUP_PAGE_SIZE
+    users = _users(size)
+    requests = _paged_transport(monkeypatch, [users, _users(size, start=size)], total=2 * size)
+
+    uid = await supabase_client.lookup_user_id_by_email("USER5@x.com")  # case-insensitive
+
+    assert str(uid) == users[5]["id"]
+    assert len(requests) == 1
+
+
+async def test_lookup_gives_up_at_the_page_cap(monkeypatch, caplog):
+    monkeypatch.setattr(supabase_client, "LOOKUP_MAX_PAGES", 3)
+    size = supabase_client.LOOKUP_PAGE_SIZE
+    pages = [_users(size, start=i * size) for i in range(10)]
+    requests = _paged_transport(monkeypatch, pages, total=10 * size)
+
+    with caplog.at_level("WARNING"):
+        assert await supabase_client.lookup_user_id_by_email("missing@x.com") is None
+
+    assert len(requests) == 3
+    assert any("page cap" in r.getMessage() for r in caplog.records)
+
+
+async def test_lookup_accepts_a_bare_list_body(monkeypatch):
+    target = {"id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "email": "list@x.com"}
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=[target])
+
+    monkeypatch.setattr(
+        supabase_client,
+        "_client",
+        lambda: httpx.AsyncClient(transport=httpx.MockTransport(_handler)),
+    )
+    uid = await supabase_client.lookup_user_id_by_email("list@x.com")
+    assert str(uid) == target["id"]

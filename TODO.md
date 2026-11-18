@@ -64,7 +64,7 @@
 - [x] Company-specific policy editing and limits (admin-only Policies page: edit limits, toggle, add, delete)
 - [ ] Invitation tokens + emails for users without a Supabase account yet
 - [x] Serve receipt images to the frontend via short-lived signed URLs
-- [ ] Handle GoTrue admin-list pagination in lookup_user_id_by_email
+- [x] Handle GoTrue admin-list pagination in lookup_user_id_by_email
 - [ ] Let members tag other attendees on a shared receipt (visibility + duplicate handling)
 
 ## Done ✅

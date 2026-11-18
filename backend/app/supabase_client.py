@@ -4,12 +4,20 @@ Every network call goes through the module-level ``_client()`` factory so tests
 can monkeypatch it with a ``MockTransport``-backed ``httpx.AsyncClient``.
 """
 
+import logging
 from urllib.parse import quote
 from uuid import UUID
 
 import httpx
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
+
+# GoTrue's admin user list is paginated and ignores the ``email`` query
+# parameter, so lookups walk the pages until the address turns up.
+LOOKUP_PAGE_SIZE = 200
+LOOKUP_MAX_PAGES = 50  # 10,000 accounts at the default size
 
 
 def _client() -> httpx.AsyncClient:
@@ -33,24 +41,47 @@ def _url(path: str) -> str:
 
 
 async def lookup_user_id_by_email(email: str) -> UUID | None:
-    """Return the auth user id for ``email``, or ``None`` if no account exists."""
+    """Return the auth user id for ``email``, or ``None`` if no account exists.
+
+    Walks GoTrue's paginated admin user list. It stops at the match, when the
+    reported ``X-Total-Count`` has been seen, on an empty page (when the server
+    sends no count), or at ``LOOKUP_MAX_PAGES``. It does not assume a short page
+    means the last page, because the server may cap the page size.
+    """
+    wanted = email.strip().lower()
     # Build the query string directly (rather than via ``params=``) so the "@" in
-    # the address stays literal in the request URL, matching GoTrue's filter.
+    # the address stays literal in the request URL.
     query = quote(email.strip(), safe="@")
+    seen = 0
     async with _client() as c:
-        resp = await c.get(_url(f"/auth/v1/admin/users?email={query}"))
-    resp.raise_for_status()
-    body = resp.json()
+        for page in range(1, LOOKUP_MAX_PAGES + 1):
+            resp = await c.get(
+                _url(
+                    f"/auth/v1/admin/users?email={query}"
+                    f"&page={page}&per_page={LOOKUP_PAGE_SIZE}"
+                )
+            )
+            resp.raise_for_status()
+            body = resp.json()
+            users = body if isinstance(body, list) else body.get("users", [])
 
-    if isinstance(body, list):
-        users = body
-    else:
-        users = body.get("users", [])
+            for user in users:
+                got = user.get("email")
+                if isinstance(got, str) and got.strip().lower() == wanted:
+                    return UUID(user["id"])
 
-    for user in users:
-        got = user.get("email")
-        if isinstance(got, str) and got.strip().lower() == email.strip().lower():
-            return UUID(user["id"])
+            seen += len(users)
+            if not users:
+                return None
+            total = resp.headers.get("x-total-count")
+            if total is not None and total.isdigit() and seen >= int(total):
+                return None
+
+    logger.warning(
+        "User lookup hit the page cap (%d pages of %d) without finding the address",
+        LOOKUP_MAX_PAGES,
+        LOOKUP_PAGE_SIZE,
+    )
     return None
 
 
