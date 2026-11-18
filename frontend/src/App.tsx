@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from '@/auth/AuthProvider'
 import { useAuth } from '@/auth/authContext'
 import { TenantProvider } from '@/auth/TenantProvider'
-import { useTenant } from '@/auth/tenantContext'
+import { useTenant, useRole } from '@/auth/tenantContext'
 import { FullScreenSpinner } from '@/components/FullScreenSpinner'
 import { Layout } from '@/components/Layout'
 import { Login } from '@/pages/Login'
@@ -12,6 +12,12 @@ import { Upload } from '@/pages/Upload'
 import { ReceiptsList } from '@/pages/ReceiptsList'
 import { ReceiptDetail } from '@/pages/ReceiptDetail'
 import { Dashboard } from '@/pages/Dashboard'
+import { Policies } from '@/pages/Policies'
+
+function AdminOnly({ children }: { children: React.ReactNode }) {
+  const { isAdmin } = useRole()
+  return isAdmin ? <>{children}</> : <Navigate to="/" replace />
+}
 
 function AuthedRoutes() {
   const { loading, activeTenantId } = useTenant()
@@ -34,6 +40,7 @@ function AuthedRoutes() {
         <Route path="/receipts" element={<ReceiptsList />} />
         <Route path="/receipts/:id" element={<ReceiptDetail />} />
         <Route path="/upload" element={<Upload />} />
+        <Route path="/policies" element={<AdminOnly><Policies /></AdminOnly>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
