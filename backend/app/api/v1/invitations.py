@@ -18,6 +18,7 @@ from app.schemas.invitation import (
     InvitationCreated,
     InvitationOut,
     InvitationPreview,
+    InvitationTokenBody,
 )
 from app.services.invitations import hash_token, invitation_status, new_token
 
@@ -117,14 +118,13 @@ _UNUSABLE = {
     "used": "This invitation has already been used",
     "expired": "This invitation has expired",
 }
-TokenPath = Annotated[str, Path(min_length=1, max_length=200)]
 
 
-@router.get("/invitations/{token}", response_model=InvitationPreview)
+@router.post("/invitations/preview", response_model=InvitationPreview)
 @limiter.limit("60/minute")
 async def preview_invitation(
     request: Request,
-    token: TokenPath,
+    body: InvitationTokenBody,
     db: AsyncSession = Depends(get_db),
 ) -> InvitationPreview:
     """Public: what a link would join. Reveals only business name, role, expiry."""
@@ -132,7 +132,7 @@ async def preview_invitation(
         await db.execute(
             select(Invitation, Tenant.name)
             .join(Tenant, Tenant.id == Invitation.tenant_id)
-            .where(Invitation.token_hash == hash_token(token))
+            .where(Invitation.token_hash == hash_token(body.token))
         )
     ).first()
     if row is None:
@@ -144,9 +144,9 @@ async def preview_invitation(
     return InvitationPreview(tenant_name=tenant_name, role=inv.role, expires_at=inv.expires_at)
 
 
-@router.post("/invitations/{token}/accept", response_model=InvitationAccepted)
+@router.post("/invitations/accept", response_model=InvitationAccepted)
 async def accept_invitation(
-    token: TokenPath,
+    body: InvitationTokenBody,
     user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> InvitationAccepted:
@@ -154,7 +154,7 @@ async def accept_invitation(
     inv = (
         await db.execute(
             select(Invitation)
-            .where(Invitation.token_hash == hash_token(token))
+            .where(Invitation.token_hash == hash_token(body.token))
             .with_for_update()
             .execution_options(populate_existing=True)
         )
@@ -194,7 +194,10 @@ async def accept_invitation(
             await db.flush()
     except IntegrityError:
         # Same user joined this business concurrently via another invitation.
-        return _already((await _existing_role()) or inv.role)
+        existing = await _existing_role()
+        if existing is None:
+            raise  # not the duplicate-membership constraint
+        return _already(existing)
 
     inv.accepted_at = datetime.utcnow()
     inv.accepted_by_user_id = user.user_id

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class InvitationCreate(BaseModel):
@@ -37,3 +37,7 @@ class InvitationAccepted(BaseModel):
     tenant_name: str
     role: str
     already_member: bool
+
+
+class InvitationTokenBody(BaseModel):
+    token: str = Field(min_length=1, max_length=200)

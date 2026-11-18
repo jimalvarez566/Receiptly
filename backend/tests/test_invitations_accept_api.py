@@ -6,9 +6,12 @@ from datetime import datetime, timedelta
 import pytest
 from fastapi import HTTPException
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 
 from app.api.v1.invitations import accept_invitation, revoke_invitation
+from app.main import app
 from app.api.v1.receipts import limiter
+from app.schemas.invitation import InvitationTokenBody
 from app.auth import CurrentUser, RequestContext
 from app.models import Invitation, Membership, Tenant
 from app.services.invitations import hash_token, new_token
@@ -77,7 +80,7 @@ async def test_preview_valid_invite_returns_name_role_expiry_without_login(
         client, db_session, user_a_id):
     t = await _seed(db_session, user_a_id, name="Cafe Rio")
     token, inv = await _invite(db_session, t.id, user_a_id, role="admin")
-    r = await client.get(f"/api/v1/invitations/{token}")
+    r = await client.post("/api/v1/invitations/preview", json={"token": token})
     assert r.status_code == 200
     body = r.json()
     assert body["tenant_name"] == "Cafe Rio"
@@ -103,14 +106,14 @@ async def test_preview_error_messages(client, db_session, user_a_id, kind, code,
     token, _ = await _invite(db_session, t.id, user_a_id, **kw)
     if kind == "unknown":
         token = new_token()
-    r = await client.get(f"/api/v1/invitations/{token}")
+    r = await client.post("/api/v1/invitations/preview", json={"token": token})
     assert (r.status_code, r.json()["detail"]) == (code, msg)
 
 
 async def test_preview_does_not_leak_token_or_ids(client, db_session, user_a_id):
     t = await _seed(db_session, user_a_id)
     token, inv = await _invite(db_session, t.id, user_a_id)
-    r = await client.get(f"/api/v1/invitations/{token}")
+    r = await client.post("/api/v1/invitations/preview", json={"token": token})
     assert set(r.json()) == {"tenant_name", "role", "expires_at"}
     assert token not in r.text and inv.token_hash not in r.text
     assert user_a_id not in r.text
@@ -119,7 +122,7 @@ async def test_preview_does_not_leak_token_or_ids(client, db_session, user_a_id)
 async def test_preview_is_rate_limited_to_429(client, db_session, user_a_id):
     t = await _seed(db_session, user_a_id)
     token, _ = await _invite(db_session, t.id, user_a_id)
-    codes = [(await client.get(f"/api/v1/invitations/{token}")).status_code
+    codes = [(await client.post("/api/v1/invitations/preview", json={"token": token})).status_code
              for _ in range(61)]
     assert codes[:60] == [200] * 60
     assert codes[60] == 429
@@ -132,7 +135,7 @@ async def test_accept_creates_membership_with_the_invite_role_and_marks_used(
         client, db_session, user_a_id, user_b_id, role):
     t = await _seed(db_session, user_a_id, name="Cafe Rio")
     token, inv = await _invite(db_session, t.id, user_a_id, role=role)
-    r = await client.post(f"/api/v1/invitations/{token}/accept", headers=_auth(user_b_id))
+    r = await client.post("/api/v1/invitations/accept", json={"token": token}, headers=_auth(user_b_id))
     assert r.status_code == 200
     assert r.json() == {"tenant_id": t.id, "tenant_name": "Cafe Rio",
                         "role": role, "already_member": False}
@@ -148,10 +151,10 @@ async def test_accept_creates_membership_with_the_invite_role_and_marks_used(
 async def test_accept_requires_login_401(client, db_session, user_a_id):
     t = await _seed(db_session, user_a_id)
     token, _ = await _invite(db_session, t.id, user_a_id)
-    url = f"/api/v1/invitations/{token}/accept"
-    assert (await client.post(url)).status_code == 401
+    url = "/api/v1/invitations/accept"
+    assert (await client.post(url, json={"token": token})).status_code == 401
     bad = {"Authorization": f"Bearer {make_token(user_a_id, expired=True)}"}
-    assert (await client.post(url, headers=bad)).status_code == 401
+    assert (await client.post(url, json={"token": token}, headers=bad)).status_code == 401
     assert await _members(db_session, t.id) == 1
 
 
@@ -159,9 +162,9 @@ async def test_accept_twice_by_another_user_is_410_used(
         client, db_session, user_a_id, user_b_id, user_c_id):
     t = await _seed(db_session, user_a_id)
     token, _ = await _invite(db_session, t.id, user_a_id)
-    url = f"/api/v1/invitations/{token}/accept"
-    assert (await client.post(url, headers=_auth(user_b_id))).status_code == 200
-    r = await client.post(url, headers=_auth(user_c_id))
+    url = "/api/v1/invitations/accept"
+    assert (await client.post(url, json={"token": token}, headers=_auth(user_b_id))).status_code == 200
+    r = await client.post(url, json={"token": token}, headers=_auth(user_c_id))
     assert (r.status_code, r.json()["detail"]) == (410, USED)
     assert await _members(db_session, t.id) == 2
 
@@ -174,13 +177,13 @@ async def test_accept_expired_and_revoked_are_410_with_exact_messages(
         ({"revoked_at": datetime.utcnow()}, REVOKED),
     ):
         token, _ = await _invite(db_session, t.id, user_a_id, **kw)
-        r = await client.post(f"/api/v1/invitations/{token}/accept", headers=_auth(user_b_id))
+        r = await client.post("/api/v1/invitations/accept", json={"token": token}, headers=_auth(user_b_id))
         assert (r.status_code, r.json()["detail"]) == (410, msg)
     assert await _members(db_session, t.id) == 1
 
 
 async def test_accept_unknown_token_404(client, db_session, user_b_id):
-    r = await client.post(f"/api/v1/invitations/{new_token()}/accept", headers=_auth(user_b_id))
+    r = await client.post("/api/v1/invitations/accept", json={"token": new_token()}, headers=_auth(user_b_id))
     assert (r.status_code, r.json()["detail"]) == (404, INVALID)
 
 
@@ -188,7 +191,7 @@ async def test_accept_by_existing_member_is_200_already_member_and_leaves_invite
         client, db_session, user_a_id):
     t = await _seed(db_session, user_a_id, name="Cafe Rio")
     token, inv = await _invite(db_session, t.id, user_a_id)
-    r = await client.post(f"/api/v1/invitations/{token}/accept", headers=_auth(user_a_id))
+    r = await client.post("/api/v1/invitations/accept", json={"token": token}, headers=_auth(user_a_id))
     assert r.status_code == 200
     assert r.json() == {"tenant_id": t.id, "tenant_name": "Cafe Rio",
                         "role": "admin", "already_member": True}
@@ -209,14 +212,14 @@ async def test_already_member_wins_even_when_invite_is_used_expired_or_revoked(
     if kind == "revoked":
         kw["revoked_at"] = datetime.utcnow()
     token, _ = await _invite(db_session, t.id, user_a_id, **kw)
-    r = await client.post(f"/api/v1/invitations/{token}/accept", headers=_auth(user_a_id))
+    r = await client.post("/api/v1/invitations/accept", json={"token": token}, headers=_auth(user_a_id))
     assert r.status_code == 200 and r.json()["already_member"] is True
 
 
 async def test_existing_role_is_not_changed_by_accept(client, db_session, user_a_id):
     t = await _seed(db_session, user_a_id)
     token, _ = await _invite(db_session, t.id, user_a_id, role="member")
-    r = await client.post(f"/api/v1/invitations/{token}/accept", headers=_auth(user_a_id))
+    r = await client.post("/api/v1/invitations/accept", json={"token": token}, headers=_auth(user_a_id))
     assert r.json()["already_member"] is True and r.json()["role"] == "admin"
     role = (await db_session.execute(select(Membership.role).where(
         Membership.tenant_id == t.id, Membership.user_id == uuid.UUID(user_a_id)))).scalar_one()
@@ -237,9 +240,9 @@ async def test_two_people_accepting_concurrently_make_one_membership(
     token, inv = await _invite(db_session, t.id, user_a_id)
     s1, s2 = TestSessionLocal(), TestSessionLocal()
     try:
-        out = await accept_invitation(token, _user(user_b_id), s1)  # lock held
+        out = await accept_invitation(InvitationTokenBody(token=token), _user(user_b_id), s1)  # lock held
         assert out.already_member is False
-        task = asyncio.create_task(accept_invitation(token, _user(user_c_id), s2))
+        task = asyncio.create_task(accept_invitation(InvitationTokenBody(token=token), _user(user_c_id), s2))
         await _blocked(task)
         await s1.commit()
         with pytest.raises(HTTPException) as e:
@@ -260,10 +263,10 @@ async def test_same_user_two_invites_concurrently_is_not_a_500(
     tok2, inv2 = await _invite(db_session, t.id, user_a_id, role="admin")
     s1, s2 = TestSessionLocal(), TestSessionLocal()
     try:
-        first = await accept_invitation(tok1, _user(user_b_id), s1)
+        first = await accept_invitation(InvitationTokenBody(token=tok1), _user(user_b_id), s1)
         assert first.already_member is False
         # s2 blocks on the unique (tenant, user) index until s1 commits.
-        task = asyncio.create_task(accept_invitation(tok2, _user(user_b_id), s2))
+        task = asyncio.create_task(accept_invitation(InvitationTokenBody(token=tok2), _user(user_b_id), s2))
         await _blocked(task)
         await s1.commit()
         second = await task
@@ -292,7 +295,7 @@ async def test_revoke_waits_for_in_flight_accept_and_cannot_revoke_used_invite(
     token, inv = await _invite(db_session, t.id, user_a_id)
     s1, s2 = TestSessionLocal(), TestSessionLocal()
     try:
-        await accept_invitation(token, _user(user_b_id), s1)  # row locked, uncommitted
+        await accept_invitation(InvitationTokenBody(token=token), _user(user_b_id), s1)  # row locked, uncommitted
         task = asyncio.create_task(
             revoke_invitation(t.id, inv.id, _admin_ctx(user_a_id, t.id), s2))
         await _blocked(task)
@@ -314,7 +317,7 @@ async def test_accept_waits_for_in_flight_revoke_and_gets_410_revoked(
     s1, s2 = TestSessionLocal(), TestSessionLocal()
     try:
         await revoke_invitation(t.id, inv.id, _admin_ctx(user_a_id, t.id), s1)
-        task = asyncio.create_task(accept_invitation(token, _user(user_b_id), s2))
+        task = asyncio.create_task(accept_invitation(InvitationTokenBody(token=token), _user(user_b_id), s2))
         await _blocked(task)
         await s1.commit()
         with pytest.raises(HTTPException) as e:
@@ -335,11 +338,63 @@ async def test_token_not_logged_on_preview_or_accept(
     t = await _seed(db_session, user_a_id)
     token, inv = await _invite(db_session, t.id, user_a_id)
     caplog.set_level(logging.DEBUG)
-    await client.get(f"/api/v1/invitations/{token}")
-    await client.post(f"/api/v1/invitations/{token}/accept", headers=_auth(user_b_id))
-    await client.post(f"/api/v1/invitations/{token}/accept", headers=_auth(user_b_id))
-    await client.get(f"/api/v1/invitations/{new_token()}")
+    await client.post("/api/v1/invitations/preview", json={"token": token})
+    await client.post("/api/v1/invitations/accept", json={"token": token}, headers=_auth(user_b_id))
+    await client.post("/api/v1/invitations/accept", json={"token": token}, headers=_auth(user_b_id))
+    await client.post("/api/v1/invitations/preview", json={"token": new_token()})
     # httpx's own client-side request log (the test client) is not app logging.
     app_logs = "\n".join(
         r.getMessage() for r in caplog.records if not r.name.startswith("httpx"))
     assert token not in app_logs and inv.token_hash not in app_logs
+
+
+# ---------------------------------------------------------------- token not in URL
+
+def test_no_route_carries_the_token_in_its_path():
+    for route in app.routes:
+        path = getattr(route, "path", "")
+        if "invitations" in path:
+            assert "{token" not in path, path
+            assert "token" not in getattr(route, "param_convertors", {}), path
+
+
+async def test_token_body_validation_and_accept_401(client, db_session):
+    for bad in ("", "x" * 201):
+        r = await client.post("/api/v1/invitations/preview", json={"token": bad})
+        assert r.status_code == 422
+    r = await client.post("/api/v1/invitations/accept", json={"token": "x" * 10})
+    assert r.status_code == 401
+
+
+async def test_request_urls_do_not_contain_the_token(
+        client, db_session, user_a_id, user_b_id):
+    t = await _seed(db_session, user_a_id)
+    token, _ = await _invite(db_session, t.id, user_a_id)
+    r1 = await client.post("/api/v1/invitations/preview", json={"token": token})
+    r2 = await client.post("/api/v1/invitations/accept", json={"token": token},
+                           headers=_auth(user_b_id))
+    assert r1.status_code == r2.status_code == 200
+    for r in (r1, r2):
+        assert token not in str(r.request.url)
+
+
+async def test_non_duplicate_integrity_error_is_not_reported_as_already_member(
+        db_session, user_a_id, user_b_id, monkeypatch):
+    t = await _seed(db_session, user_a_id)
+    token, inv = await _invite(db_session, t.id, user_a_id)
+    # Force the membership insert to violate a different constraint (bad role).
+    real_init = Membership.__init__
+
+    def bad_init(self, **kw):
+        kw["role"] = "bogus"
+        real_init(self, **kw)
+
+    monkeypatch.setattr(Membership, "__init__", bad_init)
+    s = TestSessionLocal()
+    try:
+        with pytest.raises(IntegrityError):
+            await accept_invitation(InvitationTokenBody(token=token), _user(user_b_id), s)
+        await s.rollback()
+    finally:
+        await s.close()
+    assert (await _reload(db_session, inv.id)).accepted_at is None
