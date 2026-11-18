@@ -33,7 +33,7 @@ function TeamForTenant({ tenantId }: { tenantId: number }) {
   const [busyId, setBusyId] = useState<number | null>(null)
   const [selectHint, setSelectHint] = useState(false)
   const linkRef = useRef<HTMLInputElement>(null)
-  const currentTenant = useRef(tenantId)
+  const currentTenant = useRef<number | null>(tenantId)
   const seq = useRef(0)
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
