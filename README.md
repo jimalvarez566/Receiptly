@@ -120,6 +120,20 @@ Each membership has one of two roles:
 - Change a role with `PATCH /api/v1/tenants/{tenant_id}/members/{user_id}` and
   body `{"role": "admin"}` or `{"role": "member"}` (admin only).
 
+### Editing policies
+
+Admins get a **Policies** page (hidden from members) to manage the business's
+policy rules. The five rule types are `amount_limit`, `future_date`,
+`vendor_category`, `round_number` and `short_window_duplicate`.
+
+- Edit a rule's limits and parameters, or switch a rule on or off.
+- Add a rule of an existing type (for example another `amount_limit` for a category).
+- Delete a rule; the page asks for confirmation first.
+- API: `GET/POST /api/v1/policy-rules`, `PATCH/DELETE /api/v1/policy-rules/{id}`
+  (admin only; members get a 403).
+- Changes apply to receipts analyzed afterwards. Use **Re-analyze** on older
+  receipts to evaluate them against the current rules.
+
 Interactive docs: `http://localhost:8000/docs`
 
 ### Tests
