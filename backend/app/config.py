@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     SUPABASE_JWT_SECRET: str = ""
     SUPABASE_SERVICE_ROLE_KEY: str = ""
     SUPABASE_STORAGE_BUCKET: str = "receipts"
+    RECEIPT_IMAGE_URL_TTL_SECONDS: int = 300
 
     # Database — direct connection (port 5432) is used by Alembic;
     # DATABASE_URL (may be the pooled port 6543) is used by the app runtime.
