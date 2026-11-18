@@ -13,6 +13,7 @@ import { ReceiptsList } from '@/pages/ReceiptsList'
 import { ReceiptDetail } from '@/pages/ReceiptDetail'
 import { Dashboard } from '@/pages/Dashboard'
 import { Policies } from '@/pages/Policies'
+import { Team } from '@/pages/Team'
 
 function AdminOnly({ children }: { children: React.ReactNode }) {
   const { isAdmin } = useRole()
@@ -41,6 +42,7 @@ function AuthedRoutes() {
         <Route path="/receipts/:id" element={<ReceiptDetail />} />
         <Route path="/upload" element={<Upload />} />
         <Route path="/policies" element={<AdminOnly><Policies /></AdminOnly>} />
+        <Route path="/team" element={<AdminOnly><Team /></AdminOnly>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

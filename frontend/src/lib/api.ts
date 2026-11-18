@@ -148,6 +148,39 @@ export interface PolicyRule {
   created_at: string
 }
 
+export type InviteRole = 'admin' | 'member'
+export type InviteStatus = 'pending' | 'used' | 'revoked' | 'expired'
+
+export interface Invitation {
+  id: number
+  role: InviteRole
+  status: InviteStatus
+  created_at: string
+  expires_at: string
+  created_by_user_id: string
+  accepted_by_user_id: string | null
+}
+
+export interface InvitationCreated {
+  id: number
+  role: InviteRole
+  expires_at: string
+  token: string
+}
+
+export interface InvitationPreview {
+  tenant_name: string
+  role: InviteRole
+  expires_at: string
+}
+
+export interface InvitationAccepted {
+  tenant_id: number
+  tenant_name: string
+  role: InviteRole
+  already_member: boolean
+}
+
 export const api = {
   listPolicyRules: (): Promise<PolicyRule[]> => request('/api/v1/policy-rules'),
 
@@ -178,6 +211,25 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ role }),
     }),
+
+  createInvitation: (tenantId: number, role: InviteRole): Promise<InvitationCreated> =>
+    request(`/api/v1/tenants/${tenantId}/invitations`, {
+      method: 'POST',
+      body: JSON.stringify({ role }),
+    }),
+
+  listInvitations: (tenantId: number): Promise<Invitation[]> =>
+    request(`/api/v1/tenants/${tenantId}/invitations`),
+
+  revokeInvitation: (tenantId: number, id: number): Promise<void> =>
+    request(`/api/v1/tenants/${tenantId}/invitations/${id}`, { method: 'DELETE' }),
+
+  // The token travels in the JSON body only, never in a URL.
+  previewInvitation: (token: string): Promise<InvitationPreview> =>
+    request('/api/v1/invitations/preview', { method: 'POST', body: JSON.stringify({ token }) }),
+
+  acceptInvitation: (token: string): Promise<InvitationAccepted> =>
+    request('/api/v1/invitations/accept', { method: 'POST', body: JSON.stringify({ token }) }),
 
   getMe: (): Promise<MeResponse> => request('/api/v1/auth/me'),
 

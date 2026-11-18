@@ -15,7 +15,11 @@ export function Layout() {
   const { memberships, activeTenantId, setActiveTenant } = useTenant()
   const { role, isAdmin } = useRole()
   const navLinks = isAdmin
-    ? [...links, { to: '/policies', label: 'Policies', exact: false }]
+    ? [
+        ...links,
+        { to: '/policies', label: 'Policies', exact: false },
+        { to: '/team', label: 'Team', exact: false },
+      ]
     : links
 
   return (
