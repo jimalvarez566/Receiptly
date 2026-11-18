@@ -5,12 +5,15 @@ from sqlalchemy.orm import DeclarativeBase
 
 from app.config import settings
 
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=settings.DEBUG,
-    pool_size=5,
-    max_overflow=10,
-)
+
+
+def _make_engine(url: str, echo: bool = settings.DEBUG, **pool_kwargs):
+    # hide_parameters keeps bound values (e.g. invitation token hashes) out of
+    # SQLAlchemy's statement logs and error messages, even with echo on.
+    return create_async_engine(url, echo=echo, hide_parameters=True, **pool_kwargs)
+
+
+engine = _make_engine(settings.DATABASE_URL, pool_size=5, max_overflow=10)
 
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 

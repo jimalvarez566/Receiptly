@@ -104,6 +104,12 @@ async def test_list_is_newest_first_limited_to_50_and_own_business_only(
     assert len(rows) == 50
     created = [x["created_at"] for x in rows]
     assert created == sorted(created, reverse=True)
+    # exactly the 50 newest: the 5 oldest (a0..a4) are absent
+    ids = [x["id"] for x in rows]
+    hashes_present = (await db_session.execute(
+        select(Invitation.id).where(Invitation.token_hash.in_(
+            [hash_token(f"a{i}") for i in range(5)])))).scalars().all()
+    assert not set(hashes_present) & set(ids)
     assert all(x["created_by_user_id"] == user_a_id for x in rows)
 
 
@@ -220,3 +226,47 @@ def test_invitation_status_all_cases():
     assert invitation_status(mk(expires_at=now), now) == "expired"
     assert invitation_status(mk(accepted_at=past, revoked_at=past), now) == "revoked"
     assert invitation_status(mk(accepted_at=past, expires_at=past), now) == "used"
+
+
+async def test_list_ties_on_created_at_come_back_in_descending_id_order(
+    client, db_session, user_a_id
+):
+    t = await _seed(db_session, user_a_id)
+    same = datetime.utcnow() - timedelta(hours=1)
+    for i in range(3):
+        db_session.add(_inv(t.id, user_a_id, token=f"tie{i}", created_at=same))
+    await db_session.commit()
+    r = await client.get(f"/api/v1/tenants/{t.id}/invitations", headers=_h(user_a_id, t.id))
+    ids = [x["id"] for x in r.json()]
+    assert len(ids) == 3 and ids == sorted(ids, reverse=True)
+
+
+async def test_invalid_role_is_422(client, db_session, user_a_id):
+    t = await _seed(db_session, user_a_id)
+    r = await client.post(f"/api/v1/tenants/{t.id}/invitations", json={"role": "owner"},
+                          headers=_h(user_a_id, t.id))
+    assert r.status_code == 422
+
+
+def test_app_engine_hides_parameters():
+    from app.database import engine
+    assert engine.sync_engine.hide_parameters is True
+
+
+async def test_engine_factory_keeps_parameter_values_out_of_logs(caplog):
+    import os
+    from sqlalchemy import text
+    from sqlalchemy.pool import NullPool
+    from app.database import _make_engine
+
+    eng = _make_engine(os.environ["DATABASE_URL"], echo=True, poolclass=NullPool)
+    secret = "SECRET-PARAM-VALUE-12345"
+    try:
+        with caplog.at_level(logging.INFO, logger="sqlalchemy.engine"):
+            async with eng.connect() as conn:
+                await conn.execute(text("SELECT CAST(:v AS TEXT)"), {"v": secret})
+    finally:
+        await eng.dispose()
+    logged = "\n".join(r.getMessage() for r in caplog.records)
+    assert "SELECT" in logged
+    assert secret not in logged
