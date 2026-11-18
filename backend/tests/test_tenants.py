@@ -11,12 +11,12 @@ async def _seed_tenant(db_session, owner_id: uuid.UUID, name="Acme"):
     tenant = Tenant(name=name, created_by_user_id=owner_id)
     db_session.add(tenant)
     await db_session.flush()
-    db_session.add(Membership(tenant_id=tenant.id, user_id=owner_id, role="owner"))
+    db_session.add(Membership(tenant_id=tenant.id, user_id=owner_id, role="admin"))
     await db_session.commit()
     return tenant
 
 
-async def test_create_tenant_makes_owner_membership(client, db_session, user_a_id):
+async def test_create_tenant_makes_admin_membership(client, db_session, user_a_id):
     token = make_token(user_a_id)
     resp = await client.post(
         "/api/v1/tenants", json={"name": "Acme"},
@@ -30,7 +30,7 @@ async def test_create_tenant_makes_owner_membership(client, db_session, user_a_i
     )).scalars().all()
     assert len(rows) == 1
     assert str(rows[0].user_id) == user_a_id
-    assert rows[0].role == "owner"
+    assert rows[0].role == "admin"
 
 
 async def test_list_tenants_only_returns_own(client, db_session, user_a_id, user_b_id):

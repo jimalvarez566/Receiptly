@@ -65,7 +65,7 @@ export interface ReviewResponse extends Receipt {
 export interface Membership {
   tenant_id: number
   name: string
-  role: string
+  role: 'admin' | 'member'
 }
 
 export interface MeResponse {
@@ -80,6 +80,34 @@ export interface TenantResponse {
   created_at: string
 }
 
+export class ApiError extends Error {
+  status: number
+  constructor(status: number, message: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
+async function toApiError(res: Response): Promise<ApiError> {
+  let message = `Request failed (${res.status})`
+  try {
+    const body = await res.json()
+    const detail = body?.detail
+    if (typeof detail === 'string' && detail) {
+      message = detail
+    } else if (Array.isArray(detail)) {
+      const msgs = detail
+        .map((d) => (typeof d?.msg === 'string' ? d.msg : null))
+        .filter((m): m is string => m !== null)
+      if (msgs.length > 0) message = msgs.join('; ')
+    }
+  } catch {
+    /* non-JSON body: keep fallback */
+  }
+  return new ApiError(res.status, message)
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...init,
@@ -91,13 +119,22 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   })
   if (!res.ok) {
     await handleUnauthorized(res)
-    const text = await res.text()
-    throw new Error(`${res.status}: ${text}`)
+    throw await toApiError(res)
   }
   return res.json()
 }
 
 export const api = {
+  updateMemberRole: (
+    tenantId: number,
+    userId: string,
+    role: 'admin' | 'member',
+  ): Promise<{ user_id: string; role: 'admin' | 'member' }> =>
+    request(`/api/v1/tenants/${tenantId}/members/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    }),
+
   getMe: (): Promise<MeResponse> => request('/api/v1/auth/me'),
 
   createTenant: (name: string): Promise<TenantResponse> =>
@@ -113,8 +150,7 @@ export const api = {
     })
     if (!res.ok) {
       await handleUnauthorized(res)
-      const text = await res.text()
-      throw new Error(`${res.status}: ${text}`)
+      throw await toApiError(res)
     }
     return res.json()
   },

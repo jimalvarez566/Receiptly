@@ -16,7 +16,7 @@ async def _tenant(db_session, name):
     t = Tenant(name=name, created_by_user_id=uuid.uuid4())
     db_session.add(t)
     await db_session.flush()
-    db_session.add(Membership(tenant_id=t.id, user_id=t.created_by_user_id, role="owner"))
+    db_session.add(Membership(tenant_id=t.id, user_id=t.created_by_user_id, role="admin"))
     await db_session.flush()
     return t
 

@@ -33,7 +33,7 @@ async def _seed(db_session, owner_id, name):
     tenant = Tenant(name=name, created_by_user_id=owner_id)
     db_session.add(tenant)
     await db_session.flush()
-    db_session.add(Membership(tenant_id=tenant.id, user_id=owner_id, role="owner"))
+    db_session.add(Membership(tenant_id=tenant.id, user_id=owner_id, role="admin"))
     await db_session.commit()
     return tenant
 

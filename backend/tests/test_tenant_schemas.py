@@ -21,7 +21,7 @@ def test_me_response_shape():
     me = MeResponse(
         user_id="11111111-1111-1111-1111-111111111111",
         email="a@b.com",
-        memberships=[MembershipInfo(tenant_id=1, name="Acme", role="owner")],
+        memberships=[MembershipInfo(tenant_id=1, name="Acme", role="admin")],
     )
     assert me.memberships[0].name == "Acme"
 

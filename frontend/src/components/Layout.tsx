@@ -1,7 +1,7 @@
 import { NavLink, Link, Outlet } from 'react-router-dom'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useAuth } from '@/auth/authContext'
-import { useTenant } from '@/auth/tenantContext'
+import { useTenant, useRole } from '@/auth/tenantContext'
 import logo from '@/assets/logo.png'
 
 const links = [
@@ -13,6 +13,7 @@ const links = [
 export function Layout() {
   const { user, signOut } = useAuth()
   const { memberships, activeTenantId, setActiveTenant } = useTenant()
+  const { role } = useRole()
 
   return (
     <div className="flex h-screen bg-[#0a0a0a] text-[#e5e5e5]">
@@ -39,6 +40,9 @@ export function Layout() {
               </option>
             ))}
           </select>
+          {role && (
+            <p className="px-1 text-xs text-[#737373]">{role === 'admin' ? 'Admin' : 'Member'}</p>
+          )}
           <Link
             to="/select-business"
             className="px-1 text-xs text-[#737373] hover:text-[#e5e5e5]"

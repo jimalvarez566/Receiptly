@@ -98,13 +98,27 @@ header; `POST` / `GET /api/v1/tenants` require only the JWT.
   FastAPI verifies the JWT, checks the caller's membership in that business, and
   scopes every query by that tenant. `POST /api/v1/tenants` and
   `GET /api/v1/tenants` are the exceptions — they need only the JWT.
-- Create a business with `POST /api/v1/tenants` (you become its owner). Add
+- Create a business with `POST /api/v1/tenants` (you become its admin). Add
   teammates with `POST /api/v1/tenants/{id}/members` — they must already have a
   Supabase account.
 - Receipt images are stored in a Supabase Storage bucket named `receipts`, keyed
   by `{tenant_id}/{uuid}.{ext}`.
 - Row-Level Security is not yet enabled; tenant isolation is enforced in the
   application layer. Adding RLS as defense-in-depth is a Phase 2 task.
+
+### Roles
+
+Each membership has one of two roles:
+
+| Role     | Can do                                                                                   |
+| -------- | ---------------------------------------------------------------------------------------- |
+| `admin`  | Manage members and policies, approve/reject receipts, re-run fraud analysis, see all receipts in the business |
+| `member` | Upload receipts and see only the receipts they uploaded                                  |
+
+- Denied actions return a 403 with a specific message explaining what was refused.
+- A business must always keep at least one admin.
+- Change a role with `PATCH /api/v1/tenants/{tenant_id}/members/{user_id}` and
+  body `{"role": "admin"}` or `{"role": "member"}` (admin only).
 
 Interactive docs: `http://localhost:8000/docs`
 
