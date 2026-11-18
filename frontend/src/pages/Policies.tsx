@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import type { PolicyRule, RuleType } from '@/lib/api'
+import { PolicyRuleForm } from '@/components/PolicyRuleForm'
 import { RULE_TYPE_LABELS, summarizeRule } from '@/lib/policyRules'
 
 const SEVERITY_STYLES: Record<PolicyRule['severity'], string> = {
@@ -15,6 +16,7 @@ export function Policies() {
   const [error, setError] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<number | null>(null)
   const [busyId, setBusyId] = useState<number | null>(null)
+  const [form, setForm] = useState<{ mode: 'create' } | { mode: 'edit'; rule: PolicyRule } | null>(null)
 
   useEffect(() => {
     api
@@ -63,7 +65,13 @@ export function Policies() {
             Changes apply to new receipts. Re-analyze older receipts to apply them.
           </p>
         </div>
-        <button disabled className={btn}>
+        <button
+          className={btn}
+          onClick={() => {
+            setError(null)
+            setForm({ mode: 'create' })
+          }}
+        >
           Add rule
         </button>
       </div>
@@ -71,6 +79,22 @@ export function Policies() {
       {error && <div className="px-8 py-3 text-sm text-red-400">{error}</div>}
 
       <div className="flex-1 overflow-auto">
+        {form && (
+          <PolicyRuleForm
+            key={form.mode === 'edit' ? form.rule.id : 'new'}
+            mode={form.mode}
+            rule={form.mode === 'edit' ? form.rule : undefined}
+            onCancel={() => setForm(null)}
+            onSaved={(saved) => {
+              setRules((rs) =>
+                rs.some((r) => r.id === saved.id)
+                  ? rs.map((r) => (r.id === saved.id ? saved : r))
+                  : [...rs, saved],
+              )
+              setForm(null)
+            }}
+          />
+        )}
         {loading ? (
           <div className="p-8 text-sm text-[#737373]">Loading…</div>
         ) : rules.length === 0 ? (
@@ -135,9 +159,18 @@ export function Policies() {
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <button className={btn} disabled>
-                        Edit
-                      </button>
+                      {rule.rule_type in RULE_TYPE_LABELS && (
+                        <button
+                          className={btn}
+                          disabled={busy}
+                          onClick={() => {
+                            setError(null)
+                            setForm({ mode: 'edit', rule })
+                          }}
+                        >
+                          Edit
+                        </button>
+                      )}
                       <button
                         className={btn}
                         disabled={busy}

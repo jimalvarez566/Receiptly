@@ -36,3 +36,39 @@ export function summarizeRule(rule: PolicyRule): string {
       return ''
   }
 }
+
+export function defaultParameters(type: RuleType): Record<string, unknown> {
+  switch (type) {
+    case 'amount_limit':
+      return { limit: 100 }
+    case 'future_date':
+      return {}
+    case 'vendor_category':
+      return { allowed_categories: { meals: ['restaurant'] } }
+    case 'round_number':
+      return { min_amount: 10 }
+    case 'short_window_duplicate':
+      return { window_hours: 48, amount_tolerance_pct: 10 }
+  }
+}
+
+export function categoriesToText(c: Record<string, string[]>): string {
+  return Object.entries(c)
+    .map(([name, kws]) => `${name}: ${kws.join(', ')}`)
+    .join('\n')
+}
+
+export function textToCategories(text: string): Record<string, string[]> {
+  const out: Record<string, string[]> = {}
+  for (const line of text.split('\n')) {
+    if (!line.trim()) continue
+    const idx = line.indexOf(':')
+    const name = (idx === -1 ? line : line.slice(0, idx)).trim()
+    const rest = idx === -1 ? '' : line.slice(idx + 1)
+    out[name] = rest
+      .split(',')
+      .map((k) => k.trim())
+      .filter(Boolean)
+  }
+  return out
+}
