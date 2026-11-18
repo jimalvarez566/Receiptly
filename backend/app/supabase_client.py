@@ -14,8 +14,8 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-# GoTrue's admin user list is paginated and ignores the ``email`` query
-# parameter, so lookups walk the pages until the address turns up.
+# GoTrue's admin user list is paginated and ignores any email filter, so lookups
+# walk the pages until the address turns up.
 LOOKUP_PAGE_SIZE = 200
 LOOKUP_MAX_PAGES = 50  # 10,000 accounts at the default size
 
@@ -44,22 +44,19 @@ async def lookup_user_id_by_email(email: str) -> UUID | None:
     """Return the auth user id for ``email``, or ``None`` if no account exists.
 
     Walks GoTrue's paginated admin user list. It stops at the match, when the
-    reported ``X-Total-Count`` has been seen, on an empty page (when the server
-    sends no count), or at ``LOOKUP_MAX_PAGES``. It does not assume a short page
-    means the last page, because the server may cap the page size.
+    reported ``X-Total-Count`` of distinct users has been seen, or on an empty
+    page (when the server sends no count). It does not assume a short page means
+    the last page, because the server may cap the page size. Past
+    ``LOOKUP_MAX_PAGES`` it raises rather than claim the account doesn't exist.
+    The address is deliberately not put in the request URL (the server ignores
+    it, and URLs end up in logs).
     """
     wanted = email.strip().lower()
-    # Build the query string directly (rather than via ``params=``) so the "@" in
-    # the address stays literal in the request URL.
-    query = quote(email.strip(), safe="@")
-    seen = 0
+    seen_ids: set[str] = set()
     async with _client() as c:
         for page in range(1, LOOKUP_MAX_PAGES + 1):
             resp = await c.get(
-                _url(
-                    f"/auth/v1/admin/users?email={query}"
-                    f"&page={page}&per_page={LOOKUP_PAGE_SIZE}"
-                )
+                _url(f"/auth/v1/admin/users?page={page}&per_page={LOOKUP_PAGE_SIZE}")
             )
             resp.raise_for_status()
             body = resp.json()
@@ -69,20 +66,21 @@ async def lookup_user_id_by_email(email: str) -> UUID | None:
                 got = user.get("email")
                 if isinstance(got, str) and got.strip().lower() == wanted:
                     return UUID(user["id"])
+                seen_ids.add(str(user.get("id")))
 
-            seen += len(users)
             if not users:
                 return None
-            total = resp.headers.get("x-total-count")
-            if total is not None and total.isdigit() and seen >= int(total):
+            try:
+                total = int(resp.headers.get("x-total-count", ""))
+            except ValueError:
+                total = None
+            if total is not None and len(seen_ids) >= total:
                 return None
 
-    logger.warning(
-        "User lookup hit the page cap (%d pages of %d) without finding the address",
-        LOOKUP_MAX_PAGES,
-        LOOKUP_PAGE_SIZE,
+    raise RuntimeError(
+        f"User lookup gave up after {LOOKUP_MAX_PAGES} pages of {LOOKUP_PAGE_SIZE}; "
+        "too many accounts to search this way"
     )
-    return None
 
 
 async def upload_object(path: str, data: bytes, content_type: str) -> None:

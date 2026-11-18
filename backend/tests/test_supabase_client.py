@@ -13,7 +13,7 @@ def mock_transport(monkeypatch):
     def _handler(request: httpx.Request) -> httpx.Response:
         calls["last"] = request
         if "/auth/v1/admin/users" in request.url.path:
-            if "known@x.com" in str(request.url):
+            if request.url.params.get("page", "1") == "1":
                 return httpx.Response(
                     200,
                     json={"users": [{"id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "email": "known@x.com"}]},
@@ -220,17 +220,63 @@ async def test_lookup_returns_match_without_fetching_further_pages(monkeypatch):
     assert len(requests) == 1
 
 
-async def test_lookup_gives_up_at_the_page_cap(monkeypatch, caplog):
+async def test_lookup_raises_at_the_page_cap_instead_of_claiming_no_account(monkeypatch):
     monkeypatch.setattr(supabase_client, "LOOKUP_MAX_PAGES", 3)
     size = supabase_client.LOOKUP_PAGE_SIZE
     pages = [_users(size, start=i * size) for i in range(10)]
     requests = _paged_transport(monkeypatch, pages, total=10 * size)
 
-    with caplog.at_level("WARNING"):
-        assert await supabase_client.lookup_user_id_by_email("missing@x.com") is None
+    with pytest.raises(RuntimeError, match="too many accounts"):
+        await supabase_client.lookup_user_id_by_email("missing@x.com")
 
     assert len(requests) == 3
-    assert any("page cap" in r.getMessage() for r in caplog.records)
+
+
+async def test_lookup_ignores_a_garbage_total_header(monkeypatch):
+    def _handler(request: httpx.Request) -> httpx.Response:
+        page = int(request.url.params.get("page", "1"))
+        users = _users(3) if page == 1 else []
+        return httpx.Response(200, json={"users": users}, headers={"X-Total-Count": "not-a-number"})
+
+    monkeypatch.setattr(
+        supabase_client, "_client",
+        lambda: httpx.AsyncClient(transport=httpx.MockTransport(_handler)),
+    )
+    assert await supabase_client.lookup_user_id_by_email("nobody@x.com") is None
+
+
+async def test_lookup_counts_distinct_users_so_duplicates_cannot_end_the_walk(monkeypatch):
+    # Page 2 repeats page 1's users (e.g. a signup shifted the page boundary).
+    target = {"id": "dddddddd-dddd-dddd-dddd-dddddddddddd", "email": "tail@x.com"}
+    first = _users(3)
+    requests = _paged_transport(monkeypatch, [first, first, [target]], total=4)
+
+    uid = await supabase_client.lookup_user_id_by_email("tail@x.com")
+
+    assert str(uid) == target["id"]
+    assert len(requests) == 3
+
+
+async def test_lookup_does_not_put_the_address_in_the_request_url(monkeypatch):
+    requests = _paged_transport(monkeypatch, [_users(2)], total=2)
+    await supabase_client.lookup_user_id_by_email("secret.person@x.com")
+    assert "secret.person" not in str(requests[0].url)
+
+
+async def test_lookup_propagates_a_failure_on_a_later_page(monkeypatch):
+    size = supabase_client.LOOKUP_PAGE_SIZE
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        if request.url.params.get("page") == "1":
+            return httpx.Response(200, json={"users": _users(size)}, headers={"X-Total-Count": str(2 * size)})
+        return httpx.Response(500)
+
+    monkeypatch.setattr(
+        supabase_client, "_client",
+        lambda: httpx.AsyncClient(transport=httpx.MockTransport(_handler)),
+    )
+    with pytest.raises(httpx.HTTPStatusError):
+        await supabase_client.lookup_user_id_by_email("nobody@x.com")
 
 
 async def test_lookup_accepts_a_bare_list_body(monkeypatch):
