@@ -66,7 +66,7 @@ per-business caps on invites; changing roles at accept time; multi-use links.
    `slowapi` limiter). Tokens are 256-bit so guessing is not a practical risk;
    the limit is cheap hygiene.
 7. **Existing email-based add-member stays** as is.
-8. **Token handling in the browser:** on `/join?token=…` the page stores the
+8. **Token handling in the browser:** on `/join#token=…` the page stores the
    token in `localStorage` (key `pendingInviteToken`) and removes it from the
    address bar (`history.replaceState`), so it survives the signup/login detour
    — including a confirmation-email link opened in a new tab if email
@@ -100,6 +100,14 @@ per-business caps on invites; changing roles at accept time; multi-use links.
     so the limit should be revisited when the app is deployed (production
     section of the backlog). Tokens are unguessable, so this only affects
     abuse protection, not safety.
+
+16. **Token never travels in a URL the server sees.** The share link carries
+    the token in the URL *fragment* (`/join#token=…`), which browsers never send
+    to any server, and the two invitee endpoints take it in a JSON body
+    (`POST /invitations/preview`, `POST /invitations/accept`, body `{token}`,
+    1-200 characters) instead of the request path. This keeps live tokens out of
+    uvicorn/proxy/hosting access logs, which record request paths and query
+    strings. (Found in review of Task 3; replaces the earlier path/query design.)
 
 ## Data model
 
@@ -140,8 +148,8 @@ Invitee endpoints (the token is in the path):
 
 | Endpoint | Auth | Behavior |
 |---|---|---|
-| `GET /invitations/{token}` | none (rate-limited) | `{tenant_name, role, expires_at}` for a valid pending invite. Unknown → 404 "This invitation link isn't valid"; revoked → 410 "This invitation was revoked"; used → 410 "This invitation has already been used"; expired → 410 "This invitation has expired" |
-| `POST /invitations/{token}/accept` | login (`get_current_user`), no `X-Tenant-ID` | locks the row (`FOR UPDATE`) and applies the order in call 11: unknown → 404; caller already a member → 200 `already_member: true` (invite not consumed, whatever its status); else revoked/used/expired → 410 (same messages as the preview); else creates the `Membership` with the invite's role and sets `accepted_at`/`accepted_by_user_id`. Returns `{tenant_id, tenant_name, role, already_member}`. A concurrent double-accept by two different people: the second gets 410 "already been used" |
+| `POST /invitations/preview` body `{token}` | none (rate-limited) | `{tenant_name, role, expires_at}` for a valid pending invite. Unknown → 404 "This invitation link isn't valid"; revoked → 410 "This invitation was revoked"; used → 410 "This invitation has already been used"; expired → 410 "This invitation has expired" |
+| `POST /invitations/accept` body `{token}` | login (`get_current_user`), no `X-Tenant-ID` | locks the row (`FOR UPDATE`) and applies the order in call 11: unknown → 404; caller already a member → 200 `already_member: true` (invite not consumed, whatever its status); else revoked/used/expired → 410 (same messages as the preview); else creates the `Membership` with the invite's role and sets `accepted_at`/`accepted_by_user_id`. Returns `{tenant_id, tenant_name, role, already_member}`. A concurrent double-accept by two different people: the second gets 410 "already been used" |
 
 Tokens/hashes are never logged. Errors use the existing `{"detail": ...}` shape.
 
@@ -152,12 +160,12 @@ Tokens/hashes are never logged. Errors use the existing `{"detail": ...}` shape.
   session — no auth header), `acceptInvitation(token)`; matching types.
 - **Team page** (`/team`, admin-only, sidebar link "Team"): "Create invite link"
   (role select + button) → shows the full link
-  `${window.location.origin}/join?token=…` with a Copy button and a note
+  `${window.location.origin}/join#token=…` with a Copy button and a note
   "This link is shown once. Anyone who has it can join once, until it expires or
   you revoke it."; below, the invitation list with a status badge and a Revoke
   button (pending only) with a confirmation like policy delete.
 - **Join page** (`/join`, available both logged out and logged in): reads the
-  token (query string, else `sessionStorage`), stores it in `sessionStorage`,
+  token (the URL fragment `#token=…`, else `localStorage`), stores it in `localStorage`,
   strips it from the URL, previews the invite ("You've been invited to <name>
   as <role>"). Logged out: "Create an account" and "Log in" buttons (existing
   pages); after login/signup the user is returned to `/join`. Logged in: "Join
