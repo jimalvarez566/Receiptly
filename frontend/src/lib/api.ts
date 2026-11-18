@@ -51,6 +51,12 @@ export interface Receipt {
   fraud_flags: FraudFlag[]
 }
 
+export interface ReceiptImageUrl {
+  url: string
+  expires_in: number
+  kind: 'image' | 'pdf'
+}
+
 export interface ReceiptListResponse {
   receipts: Receipt[]
   total: number
@@ -195,6 +201,8 @@ export const api = {
 
   getReceipt: (id: number): Promise<Receipt> =>
     request(`/api/v1/receipts/${id}`),
+  getReceiptImageUrl: (id: number): Promise<ReceiptImageUrl> =>
+    request(`/api/v1/receipts/${id}/image-url`),
 
   listReceipts: (page = 1, pageSize = 20, status?: string): Promise<ReceiptListResponse> => {
     const params = new URLSearchParams({ page: String(page), per_page: String(pageSize) })
