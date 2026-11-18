@@ -4,12 +4,20 @@ Every network call goes through the module-level ``_client()`` factory so tests
 can monkeypatch it with a ``MockTransport``-backed ``httpx.AsyncClient``.
 """
 
+import logging
 from urllib.parse import quote
 from uuid import UUID
 
 import httpx
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
+
+# GoTrue's admin user list is paginated and ignores any email filter, so lookups
+# walk the pages until the address turns up.
+LOOKUP_PAGE_SIZE = 200
+LOOKUP_MAX_PAGES = 50  # 10,000 accounts at the default size
 
 
 def _client() -> httpx.AsyncClient:
@@ -33,25 +41,46 @@ def _url(path: str) -> str:
 
 
 async def lookup_user_id_by_email(email: str) -> UUID | None:
-    """Return the auth user id for ``email``, or ``None`` if no account exists."""
-    # Build the query string directly (rather than via ``params=``) so the "@" in
-    # the address stays literal in the request URL, matching GoTrue's filter.
-    query = quote(email.strip(), safe="@")
+    """Return the auth user id for ``email``, or ``None`` if no account exists.
+
+    Walks GoTrue's paginated admin user list. It stops at the match, when the
+    reported ``X-Total-Count`` of distinct users has been seen, or on an empty
+    page (when the server sends no count). It does not assume a short page means
+    the last page, because the server may cap the page size. Past
+    ``LOOKUP_MAX_PAGES`` it raises rather than claim the account doesn't exist.
+    The address is deliberately not put in the request URL (the server ignores
+    it, and URLs end up in logs).
+    """
+    wanted = email.strip().lower()
+    seen_ids: set[str] = set()
     async with _client() as c:
-        resp = await c.get(_url(f"/auth/v1/admin/users?email={query}"))
-    resp.raise_for_status()
-    body = resp.json()
+        for page in range(1, LOOKUP_MAX_PAGES + 1):
+            resp = await c.get(
+                _url(f"/auth/v1/admin/users?page={page}&per_page={LOOKUP_PAGE_SIZE}")
+            )
+            resp.raise_for_status()
+            body = resp.json()
+            users = body if isinstance(body, list) else body.get("users", [])
 
-    if isinstance(body, list):
-        users = body
-    else:
-        users = body.get("users", [])
+            for user in users:
+                got = user.get("email")
+                if isinstance(got, str) and got.strip().lower() == wanted:
+                    return UUID(user["id"])
+                seen_ids.add(str(user.get("id")))
 
-    for user in users:
-        got = user.get("email")
-        if isinstance(got, str) and got.strip().lower() == email.strip().lower():
-            return UUID(user["id"])
-    return None
+            if not users:
+                return None
+            try:
+                total = int(resp.headers.get("x-total-count", ""))
+            except ValueError:
+                total = None
+            if total is not None and len(seen_ids) >= total:
+                return None
+
+    raise RuntimeError(
+        f"User lookup gave up after {LOOKUP_MAX_PAGES} pages of {LOOKUP_PAGE_SIZE}; "
+        "too many accounts to search this way"
+    )
 
 
 async def upload_object(path: str, data: bytes, content_type: str) -> None:
