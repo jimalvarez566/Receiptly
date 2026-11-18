@@ -134,6 +134,17 @@ policy rules. The five rule types are `amount_limit`, `future_date`,
 - Changes apply to receipts analyzed afterwards. Use **Re-analyze** on older
   receipts to evaluate them against the current rules.
 
+### Viewing receipt images
+
+The receipt detail page shows the uploaded file (image or PDF) through a signed
+link from `GET /api/v1/receipts/{id}/image-url`.
+
+- Links expire after 5 minutes (change with `RECEIPT_IMAGE_URL_TTL_SECONDS`).
+- Only people allowed to see the receipt get a link: admins for any receipt in
+  the business, members for their own receipts only.
+- Expiry stops new loads but does not recall a file a browser has already
+  loaded. To cut a file off completely, delete its Storage object.
+
 Interactive docs: `http://localhost:8000/docs`
 
 ### Tests
