@@ -61,7 +61,7 @@ Dark fintech SaaS interface (Stripe/Linear aesthetic). Run locally with `npm run
 |---|---|---|
 | Dashboard | `/` | Summary cards — total, pending, approved, rejected, risk breakdown |
 | Receipts List | `/receipts` | Paginated table with status filter; click any row to open detail |
-| Receipt Detail | `/receipts/:id` | Fraud score, OCR fields, line items, fraud flags, approve/reject/re-analyze, "Why this score?" AI explanation |
+| Receipt Detail | `/receipts/:id` | Original receipt image or PDF, fraud score, OCR fields, line items, fraud flags, approve/reject/re-analyze, "Why this score?" AI explanation |
 | Upload | `/upload` | Drag-and-drop zone; redirects to detail page on success |
 
 ### API Endpoints (`/api/v1/`)
@@ -74,6 +74,7 @@ Dark fintech SaaS interface (Stripe/Linear aesthetic). Run locally with `npm run
 | `POST`   | `/api/v1/receipts/{id}/explain` | Generate AI explanation via Gemini 2.5 Flash; cached after first call. See `GEMINI_EXPLAINER.md`. |
 | `PATCH`  | `/api/v1/receipts/{id}/review` | Approve or reject a receipt; returns `original_receipt_id` for duplicates |
 | `GET`    | `/api/v1/receipts/{id}` | Fetch receipt with fraud flags and OCR data |
+| `GET`    | `/api/v1/receipts/{id}/image-url` | Returns a short-lived signed link to the receipt's original file (image or PDF). Members: own receipts only |
 | `GET`    | `/api/v1/receipts` | List receipts (paginated, filterable by status) |
 | `GET`    | `/api/v1/auth/me` | Current user + business memberships |
 | `POST`   | `/api/v1/tenants` | Create a business |
@@ -84,6 +85,8 @@ Dark fintech SaaS interface (Stripe/Linear aesthetic). Run locally with `npm run
 
 Every `/api/v1/receipts/*` route requires a Supabase JWT **and** an `X-Tenant-ID`
 header; `POST` / `GET /api/v1/tenants` require only the JWT.
+
+Interactive docs: `http://localhost:8000/docs`
 
 ### Auth & multi-tenancy
 
@@ -144,8 +147,6 @@ link from `GET /api/v1/receipts/{id}/image-url`.
   the business, members for their own receipts only.
 - Expiry stops new loads but does not recall a file a browser has already
   loaded. To cut a file off completely, delete its Storage object.
-
-Interactive docs: `http://localhost:8000/docs`
 
 ### Tests
 53 unit tests covering fraud scorer, all policy rule types, and hash computation — run with `pytest`.
