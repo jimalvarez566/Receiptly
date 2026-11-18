@@ -13,7 +13,10 @@ const links = [
 export function Layout() {
   const { user, signOut } = useAuth()
   const { memberships, activeTenantId, setActiveTenant } = useTenant()
-  const { role } = useRole()
+  const { role, isAdmin } = useRole()
+  const navLinks = isAdmin
+    ? [...links, { to: '/policies', label: 'Policies', exact: false }]
+    : links
 
   return (
     <div className="flex h-screen bg-[#0a0a0a] text-[#e5e5e5]">
@@ -52,7 +55,7 @@ export function Layout() {
         </div>
 
         <nav className="flex flex-col gap-0.5 p-2 flex-1">
-          {links.map(({ to, label, exact }) => (
+          {navLinks.map(({ to, label, exact }) => (
             <NavLink
               key={to}
               to={to}

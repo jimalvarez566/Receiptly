@@ -121,10 +121,48 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     await handleUnauthorized(res)
     throw await toApiError(res)
   }
+  if (res.status === 204) return undefined as T
   return res.json()
 }
 
+export type RuleType =
+  | 'amount_limit'
+  | 'future_date'
+  | 'vendor_category'
+  | 'round_number'
+  | 'short_window_duplicate'
+
+export interface PolicyRule {
+  id: number
+  rule_name: string
+  rule_type: string
+  severity: 'low' | 'medium' | 'high'
+  parameters: Record<string, unknown>
+  is_active: boolean
+  created_at: string
+}
+
 export const api = {
+  listPolicyRules: (): Promise<PolicyRule[]> => request('/api/v1/policy-rules'),
+
+  createPolicyRule: (body: {
+    rule_name: string
+    rule_type: RuleType
+    severity: PolicyRule['severity']
+    parameters: Record<string, unknown>
+    is_active?: boolean
+  }): Promise<PolicyRule> =>
+    request('/api/v1/policy-rules', { method: 'POST', body: JSON.stringify(body) }),
+
+  updatePolicyRule: (
+    id: number,
+    body: Partial<Pick<PolicyRule, 'rule_name' | 'severity' | 'parameters' | 'is_active'>>,
+  ): Promise<PolicyRule> =>
+    request(`/api/v1/policy-rules/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+
+  deletePolicyRule: (id: number): Promise<void> =>
+    request(`/api/v1/policy-rules/${id}`, { method: 'DELETE' }),
+
   updateMemberRole: (
     tenantId: number,
     userId: string,
