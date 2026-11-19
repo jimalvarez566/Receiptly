@@ -12,6 +12,8 @@ const FALLBACK_MESSAGE = "Couldn't load the receipt image."
 export function ReceiptImage({ receiptId }: { receiptId: number }) {
   const [view, setView] = useState<View>({ receiptId, phase: 'loading' })
   const [attempt, setAttempt] = useState(0)
+  const [opening, setOpening] = useState(false)
+  const [openError, setOpenError] = useState<string | null>(null)
   // Whether the one automatic refetch (after the browser failed to render the
   // file) has been used for the current receipt.
   const autoRetry = useRef({ receiptId, used: false })
@@ -53,6 +55,30 @@ export function ReceiptImage({ receiptId }: { receiptId: number }) {
   const handleManualRetry = () => {
     autoRetry.current = { receiptId, used: false }
     refetch()
+  }
+
+  // The signed link on screen expires after a few minutes, so "Open in new tab"
+  // fetches a fresh one on click. The blank tab is opened synchronously to
+  // avoid popup blockers, then pointed at the fresh link.
+  const handleOpenInNewTab = async () => {
+    if (opening) return
+    setOpenError(null)
+    const w = window.open('', '_blank')
+    if (!w) {
+      setOpenError('Your browser blocked the new tab — allow pop-ups and try again.')
+      return
+    }
+    w.opener = null
+    setOpening(true)
+    try {
+      const fresh = await api.getReceiptImageUrl(receiptId)
+      w.location.href = fresh.url
+    } catch (err) {
+      w.close()
+      setOpenError(err instanceof Error && err.message ? err.message : FALLBACK_MESSAGE)
+    } finally {
+      setOpening(false)
+    }
   }
 
   // A view for a previous receipt counts as loading.
@@ -100,14 +126,15 @@ export function ReceiptImage({ receiptId }: { receiptId: number }) {
             >
               <p className="text-sm text-[#737373]">Can't preview this PDF here.</p>
             </object>
-            <a
-              href={current.link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-400 underline underline-offset-2 mt-2 inline-block hover:text-blue-300"
+            <button
+              type="button"
+              onClick={handleOpenInNewTab}
+              disabled={opening}
+              className="text-xs text-blue-400 underline underline-offset-2 mt-2 inline-block hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Open in new tab
-            </a>
+            </button>
+            {openError && <p className="text-sm text-red-400 mt-2">{openError}</p>}
           </div>
         )}
       </div>
