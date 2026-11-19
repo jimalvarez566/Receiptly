@@ -201,9 +201,14 @@ export function Join() {
         Expires {parseUtc(preview.expires_at).toLocaleString()}
       </p>
       {loggedIn ? (
-        <Button size="lg" onClick={onJoin} disabled={busy}>
-          {busy ? 'Joining…' : `Join ${preview.tenant_name}`}
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Button size="lg" onClick={onJoin} disabled={busy}>
+            {busy ? 'Joining…' : `Join ${preview.tenant_name}`}
+          </Button>
+          <Button size="lg" variant="outline" onClick={onDiscard} disabled={busy}>
+            No thanks, continue to the app
+          </Button>
+        </div>
       ) : (
         <div className="flex flex-col gap-2">
           <Button size="lg" onClick={() => navigate('/signup')} disabled={busy}>
