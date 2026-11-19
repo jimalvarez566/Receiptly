@@ -113,8 +113,11 @@ Interactive docs: `http://localhost:8000/docs`
   Supabase account.
 - Receipt images are stored in a Supabase Storage bucket named `receipts`, keyed
   by `{tenant_id}/{uuid}.{ext}`.
-- Row-Level Security is not yet enabled; tenant isolation is enforced in the
-  application layer. Adding RLS as defense-in-depth is a Phase 2 task.
+- Row-Level Security is enabled on every public table with no policies
+  (deny-all), so the public anon key can read nothing. The backend connects as
+  the `postgres` role, which bypasses RLS, so tenant isolation and roles are
+  enforced in the backend. `tests/test_rls_coverage.py` fails if a new table is
+  added without RLS enabled.
 
 ### Roles
 
@@ -169,7 +172,7 @@ link from `GET /api/v1/receipts/{id}/image-url`.
   loaded. To cut a file off completely, delete its Storage object.
 
 ### Tests
-53 unit tests covering fraud scorer, all policy rule types, and hash computation — run with `pytest`.
+The backend test suite (pytest) covers the fraud scorer, policy rules, hashing, auth, tenants and roles, policy editing, signed image URLs and invitations. Run it with `pytest` from `backend/`.
 
 ## Local Setup
 
@@ -234,7 +237,7 @@ npm run dev
 - Gemini Vision fallback for low-confidence OCR
 - Isolation Forest anomaly detection
 - Analytics dashboard (employee risk clustering, fraud trends)
-- User authentication and review workflow UI
+- Review workflow UI
 
 ## Project Docs
 

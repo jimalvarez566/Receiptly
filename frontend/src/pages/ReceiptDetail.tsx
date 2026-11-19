@@ -124,10 +124,18 @@ export function ReceiptDetail() {
     receipt.items?.line_items ?? []
 
   const duplicateFlag = receipt.fraud_flags.find((f) => f.flag_type === 'duplicate')
-  const originalReceiptId =
+  const rawOriginalId =
     duplicateFlag?.details && typeof duplicateFlag.details === 'object'
-      ? (duplicateFlag.details as Record<string, unknown>).existing_receipt_id
+      ? (duplicateFlag.details as Record<string, unknown>).duplicate_receipt_id
       : null
+  const parsedOriginalId =
+    typeof rawOriginalId === 'number'
+      ? rawOriginalId
+      : typeof rawOriginalId === 'string' && /^\d+$/.test(rawOriginalId.trim())
+        ? Number(rawOriginalId)
+        : NaN
+  const originalReceiptId =
+    Number.isInteger(parsedOriginalId) && parsedOriginalId > 0 ? parsedOriginalId : null
 
   const isBusy = actionState === 'loading'
   const canReview = receipt.status !== 'approved' && receipt.status !== 'rejected'

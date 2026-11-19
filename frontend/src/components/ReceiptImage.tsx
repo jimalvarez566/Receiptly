@@ -12,6 +12,24 @@ const FALLBACK_MESSAGE = "Couldn't load the receipt image."
 export function ReceiptImage({ receiptId }: { receiptId: number }) {
   const [view, setView] = useState<View>({ receiptId, phase: 'loading' })
   const [attempt, setAttempt] = useState(0)
+  // Keyed to the receipt so a stale state from another receipt is ignored.
+  const [openState, setOpenState] = useState<{
+    receiptId: number
+    opening: boolean
+    error: string | null
+  }>({ receiptId, opening: false, error: null })
+  const opening = openState.receiptId === receiptId && openState.opening
+  const openError = openState.receiptId === receiptId ? openState.error : null
+  // Bumped when the receipt changes or the component unmounts, so an
+  // in-flight "open in new tab" can tell it is stale.
+  const generation = useRef(0)
+
+  useEffect(() => {
+    generation.current += 1
+    return () => {
+      generation.current += 1
+    }
+  }, [receiptId])
   // Whether the one automatic refetch (after the browser failed to render the
   // file) has been used for the current receipt.
   const autoRetry = useRef({ receiptId, used: false })
@@ -53,6 +71,58 @@ export function ReceiptImage({ receiptId }: { receiptId: number }) {
   const handleManualRetry = () => {
     autoRetry.current = { receiptId, used: false }
     refetch()
+  }
+
+  // The signed link on screen expires after a few minutes, so "Open in new tab"
+  // fetches a fresh one on click. The blank tab is opened synchronously to
+  // avoid popup blockers, then pointed at the fresh link.
+  const handleOpenInNewTab = async () => {
+    if (opening) return
+    const gen = generation.current
+    const w = window.open('', '_blank')
+    if (!w) {
+      setOpenState({
+        receiptId,
+        opening: false,
+        error: 'Your browser blocked the new tab — allow pop-ups and try again.',
+      })
+      return
+    }
+    w.opener = null
+    setOpenState({ receiptId, opening: true, error: null })
+    // Stale request: only clear this receipt's pending flag; never set an
+    // error or navigate.
+    const clearPending = () =>
+      setOpenState((cur) =>
+        cur.receiptId === receiptId && cur.opening
+          ? { receiptId, opening: false, error: null }
+          : cur,
+      )
+    const closeBlank = () => {
+      try {
+        w.close()
+      } catch {
+        // ignore
+      }
+    }
+    try {
+      const fresh = await api.getReceiptImageUrl(receiptId)
+      if (generation.current !== gen) {
+        closeBlank()
+        clearPending()
+        return
+      }
+      w.location.href = fresh.url
+      setOpenState({ receiptId, opening: false, error: null })
+    } catch (err) {
+      closeBlank()
+      if (generation.current !== gen) {
+        clearPending()
+        return
+      }
+      const message = err instanceof Error && err.message ? err.message : FALLBACK_MESSAGE
+      setOpenState({ receiptId, opening: false, error: message })
+    }
   }
 
   // A view for a previous receipt counts as loading.
@@ -100,14 +170,15 @@ export function ReceiptImage({ receiptId }: { receiptId: number }) {
             >
               <p className="text-sm text-[#737373]">Can't preview this PDF here.</p>
             </object>
-            <a
-              href={current.link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-400 underline underline-offset-2 mt-2 inline-block hover:text-blue-300"
+            <button
+              type="button"
+              onClick={handleOpenInNewTab}
+              disabled={opening}
+              className="text-xs text-blue-400 underline underline-offset-2 mt-2 inline-block hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Open in new tab
-            </a>
+            </button>
+            {openError && <p className="text-sm text-red-400 mt-2">{openError}</p>}
           </div>
         )}
       </div>
