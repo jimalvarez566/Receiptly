@@ -12,8 +12,24 @@ const FALLBACK_MESSAGE = "Couldn't load the receipt image."
 export function ReceiptImage({ receiptId }: { receiptId: number }) {
   const [view, setView] = useState<View>({ receiptId, phase: 'loading' })
   const [attempt, setAttempt] = useState(0)
-  const [opening, setOpening] = useState(false)
-  const [openError, setOpenError] = useState<string | null>(null)
+  // Keyed to the receipt so a stale state from another receipt is ignored.
+  const [openState, setOpenState] = useState<{
+    receiptId: number
+    opening: boolean
+    error: string | null
+  }>({ receiptId, opening: false, error: null })
+  const opening = openState.receiptId === receiptId && openState.opening
+  const openError = openState.receiptId === receiptId ? openState.error : null
+  // Bumped when the receipt changes or the component unmounts, so an
+  // in-flight "open in new tab" can tell it is stale.
+  const generation = useRef(0)
+
+  useEffect(() => {
+    generation.current += 1
+    return () => {
+      generation.current += 1
+    }
+  }, [receiptId])
   // Whether the one automatic refetch (after the browser failed to render the
   // file) has been used for the current receipt.
   const autoRetry = useRef({ receiptId, used: false })
@@ -62,22 +78,38 @@ export function ReceiptImage({ receiptId }: { receiptId: number }) {
   // avoid popup blockers, then pointed at the fresh link.
   const handleOpenInNewTab = async () => {
     if (opening) return
-    setOpenError(null)
+    const gen = generation.current
     const w = window.open('', '_blank')
     if (!w) {
-      setOpenError('Your browser blocked the new tab — allow pop-ups and try again.')
+      setOpenState({
+        receiptId,
+        opening: false,
+        error: 'Your browser blocked the new tab — allow pop-ups and try again.',
+      })
       return
     }
     w.opener = null
-    setOpening(true)
+    setOpenState({ receiptId, opening: true, error: null })
+    const closeBlank = () => {
+      try {
+        w.close()
+      } catch {
+        // ignore
+      }
+    }
     try {
       const fresh = await api.getReceiptImageUrl(receiptId)
+      if (generation.current !== gen) {
+        closeBlank()
+        return
+      }
       w.location.href = fresh.url
+      setOpenState({ receiptId, opening: false, error: null })
     } catch (err) {
-      w.close()
-      setOpenError(err instanceof Error && err.message ? err.message : FALLBACK_MESSAGE)
-    } finally {
-      setOpening(false)
+      closeBlank()
+      if (generation.current !== gen) return
+      const message = err instanceof Error && err.message ? err.message : FALLBACK_MESSAGE
+      setOpenState({ receiptId, opening: false, error: message })
     }
   }
 
