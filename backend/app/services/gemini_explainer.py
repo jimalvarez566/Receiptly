@@ -1,10 +1,22 @@
 import logging
+import re
 
 import google.generativeai as genai
 
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+_RECEIPT_REF_RE = re.compile(
+    r"\breceipts?\s*(?:\(\s*#\s*\d+\s*\)|#\s*\d+)|\(\s*#\s*\d+\s*\)|#\s*\d+",
+    re.IGNORECASE,
+)
+
+
+def _redact_receipt_refs(text: str) -> str:
+    """Replace references to other receipts' numbers with 'another receipt'."""
+    return _RECEIPT_REF_RE.sub("another receipt", text)
 
 
 def _build_prompt(receipt, flags) -> str:
@@ -15,7 +27,7 @@ def _build_prompt(receipt, flags) -> str:
     risk = receipt.risk_level or "unknown"
 
     flag_lines = "\n".join(
-        f"- [{f.severity.upper()}] {f.flag_type}: {f.description or 'No description'}"
+        f"- [{f.severity.upper()}] {f.flag_type}: {_redact_receipt_refs(f.description or 'No description')}"
         for f in flags
     )
 
@@ -25,7 +37,7 @@ def _build_prompt(receipt, flags) -> str:
         f"{flag_lines}\n\n"
         "In 2-3 sentences, explain to a non-technical reviewer why this receipt was "
         "flagged and what specifically looks suspicious. Write in plain English. "
-        "Do not use bullet points."
+        "Do not use bullet points. Do not mention receipt numbers or IDs."
     )
 
 
