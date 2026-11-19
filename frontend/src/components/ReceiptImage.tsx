@@ -90,6 +90,14 @@ export function ReceiptImage({ receiptId }: { receiptId: number }) {
     }
     w.opener = null
     setOpenState({ receiptId, opening: true, error: null })
+    // Stale request: only clear this receipt's pending flag; never set an
+    // error or navigate.
+    const clearPending = () =>
+      setOpenState((cur) =>
+        cur.receiptId === receiptId && cur.opening
+          ? { receiptId, opening: false, error: null }
+          : cur,
+      )
     const closeBlank = () => {
       try {
         w.close()
@@ -101,13 +109,17 @@ export function ReceiptImage({ receiptId }: { receiptId: number }) {
       const fresh = await api.getReceiptImageUrl(receiptId)
       if (generation.current !== gen) {
         closeBlank()
+        clearPending()
         return
       }
       w.location.href = fresh.url
       setOpenState({ receiptId, opening: false, error: null })
     } catch (err) {
       closeBlank()
-      if (generation.current !== gen) return
+      if (generation.current !== gen) {
+        clearPending()
+        return
+      }
       const message = err instanceof Error && err.message ? err.message : FALLBACK_MESSAGE
       setOpenState({ receiptId, opening: false, error: message })
     }
