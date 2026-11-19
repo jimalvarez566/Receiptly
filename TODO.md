@@ -62,7 +62,8 @@
 - [ ] Add Row-Level Security policies on tenant tables (defense-in-depth)
 - [x] Enforce roles (admin vs member) on tenant + policy_rule endpoints (receipts + member endpoints done; policy-rule endpoints will use `require_admin` when added)
 - [x] Company-specific policy editing and limits (admin-only Policies page: edit limits, toggle, add, delete)
-- [ ] Invitation tokens + emails for users without a Supabase account yet
+- [x] Invitation links for users without a Supabase account yet
+- [ ] Email invitations through a custom SMTP provider (Supabase's built-in email only reaches team members)
 - [x] Serve receipt images to the frontend via short-lived signed URLs
 - [x] Handle GoTrue admin-list pagination in lookup_user_id_by_email
 - [ ] Let members tag other attendees on a shared receipt (visibility + duplicate handling)
