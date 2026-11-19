@@ -63,7 +63,7 @@ Dark fintech SaaS interface (Stripe/Linear aesthetic). Run locally with `npm run
 | Receipts List | `/receipts` | Paginated table with status filter; click any row to open detail |
 | Receipt Detail | `/receipts/:id` | Original receipt image or PDF, fraud score, OCR fields, line items, fraud flags, approve/reject/re-analyze, "Why this score?" AI explanation |
 | Upload | `/upload` | Drag-and-drop zone; redirects to detail page on success |
-| Team | `/team` | Admin only. Members list, roles, and invitation links (create, copy, revoke) |
+| Team | `/team` | Admin only. Invitation links (create, copy, revoke) |
 | Join | `/join#token=...` | Opens an invitation link: sign up or log in, then join the business |
 
 ### API Endpoints (`/api/v1/`)

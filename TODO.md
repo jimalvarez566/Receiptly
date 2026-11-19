@@ -38,6 +38,7 @@
 - [ ] Build fraud review workflow UI
 - [ ] Implement export functionality (CSV, PDF)
 - [ ] Add API rate limiting
+- [ ] Preview-invite rate limit keys on the client address; behind a proxy use X-Forwarded-For / a trusted-proxy setting (also applies to the other slowapi limits)
 - [ ] Optimize database queries with indexes
 - [ ] Set up monitoring and logging
 

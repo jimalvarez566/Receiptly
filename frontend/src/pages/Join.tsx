@@ -32,7 +32,7 @@ export function Join() {
   const [fragmentToken] = useState(readFragmentToken)
   const [token] = useState(() => fragmentToken ?? getPendingInvite())
   const [preview, setPreview] = useState<InvitationPreview | null>(null)
-  const [error, setError] = useState<{ message: string; final: boolean } | null>(null)
+  const [error, setError] = useState<{ message: string; final: boolean; accept?: boolean } | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [joinedNoRefresh, setJoinedNoRefresh] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -79,8 +79,13 @@ export function Join() {
   }
 
   const onRetry = () => {
+    const retryAccept = error?.accept
     setError(null)
-    setAttempt((a) => a + 1)
+    if (retryAccept) {
+      void onJoin()
+    } else {
+      setAttempt((a) => a + 1)
+    }
   }
 
   const loggedIn = session != null
@@ -95,10 +100,13 @@ export function Join() {
       // 401: api.ts is already signing out and redirecting to /login. Keep the
       // token so the invite resumes after login.
       if (err instanceof ApiError && err.status === 401) return
-      clearPendingInvite()
+      // Only a definitive answer (not found / gone) discards the token.
+      const final = err instanceof ApiError && (err.status === 404 || err.status === 410)
+      if (final) clearPendingInvite()
       setError({
         message: err instanceof Error ? err.message : 'Could not accept this invitation',
-        final: true,
+        final,
+        accept: true,
       })
       setBusy(false)
       return

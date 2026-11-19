@@ -33,7 +33,7 @@ def test_every_model_table_has_rls_enabled_in_a_migration():
 )
 @pytest.mark.parametrize(
     "table",
-    ["tenants", "memberships", "employees", "receipts", "fraud_flags", "policy_rules"],
+    ["tenants", "memberships", "employees", "receipts", "fraud_flags", "policy_rules", "invitations"],
 )
 def test_anon_key_cannot_read_table(table):
     url = os.environ["LIVE_SUPABASE_URL"].rstrip("/")
