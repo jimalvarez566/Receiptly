@@ -83,6 +83,11 @@ def user_b_id():
 
 
 @pytest.fixture
+def user_c_id():
+    return str(uuid.uuid4())
+
+
+@pytest.fixture
 def make_receipt():
     """Factory for Receipt ORM instances without a DB session."""
     def _make(

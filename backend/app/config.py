@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     # DATABASE_URL (may be the pooled port 6543) is used by the app runtime.
     DATABASE_URL_DIRECT: str = ""
 
+    # Invitations
+    INVITE_TTL_DAYS: int = 7
+
     # Feature Flags
     ENABLE_GEMINI_VISION: bool = False
     ENABLE_ANOMALY_DETECTION: bool = False

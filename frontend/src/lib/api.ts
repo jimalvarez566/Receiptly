@@ -114,17 +114,22 @@ async function toApiError(res: Response): Promise<ApiError> {
   return new ApiError(res.status, message)
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  opts: { auth?: boolean } = {},
+): Promise<T> {
+  const auth = opts.auth !== false
   const res = await fetch(`${BASE_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      ...(await authHeaders()),
+      ...(auth ? await authHeaders() : {}),
       ...init?.headers,
     },
   })
   if (!res.ok) {
-    await handleUnauthorized(res)
+    if (auth) await handleUnauthorized(res)
     throw await toApiError(res)
   }
   if (res.status === 204) return undefined as T
@@ -146,6 +151,39 @@ export interface PolicyRule {
   parameters: Record<string, unknown>
   is_active: boolean
   created_at: string
+}
+
+export type InviteRole = 'admin' | 'member'
+export type InviteStatus = 'pending' | 'used' | 'revoked' | 'expired'
+
+export interface Invitation {
+  id: number
+  role: InviteRole
+  status: InviteStatus
+  created_at: string
+  expires_at: string
+  created_by_user_id: string
+  accepted_by_user_id: string | null
+}
+
+export interface InvitationCreated {
+  id: number
+  role: InviteRole
+  expires_at: string
+  token: string
+}
+
+export interface InvitationPreview {
+  tenant_name: string
+  role: InviteRole
+  expires_at: string
+}
+
+export interface InvitationAccepted {
+  tenant_id: number
+  tenant_name: string
+  role: InviteRole
+  already_member: boolean
 }
 
 export const api = {
@@ -178,6 +216,30 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ role }),
     }),
+
+  createInvitation: (tenantId: number, role: InviteRole): Promise<InvitationCreated> =>
+    request(`/api/v1/tenants/${tenantId}/invitations`, {
+      method: 'POST',
+      body: JSON.stringify({ role }),
+    }),
+
+  listInvitations: (tenantId: number): Promise<Invitation[]> =>
+    request(`/api/v1/tenants/${tenantId}/invitations`),
+
+  revokeInvitation: (tenantId: number, id: number): Promise<void> =>
+    request(`/api/v1/tenants/${tenantId}/invitations/${id}`, { method: 'DELETE' }),
+
+  // The token travels in the JSON body only, never in a URL.
+  // Public endpoint: no auth headers and no 401 sign-out handling.
+  previewInvitation: (token: string): Promise<InvitationPreview> =>
+    request(
+      '/api/v1/invitations/preview',
+      { method: 'POST', body: JSON.stringify({ token }) },
+      { auth: false },
+    ),
+
+  acceptInvitation: (token: string): Promise<InvitationAccepted> =>
+    request('/api/v1/invitations/accept', { method: 'POST', body: JSON.stringify({ token }) }),
 
   getMe: (): Promise<MeResponse> => request('/api/v1/auth/me'),
 

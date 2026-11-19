@@ -63,6 +63,8 @@ Dark fintech SaaS interface (Stripe/Linear aesthetic). Run locally with `npm run
 | Receipts List | `/receipts` | Paginated table with status filter; click any row to open detail |
 | Receipt Detail | `/receipts/:id` | Original receipt image or PDF, fraud score, OCR fields, line items, fraud flags, approve/reject/re-analyze, "Why this score?" AI explanation |
 | Upload | `/upload` | Drag-and-drop zone; redirects to detail page on success |
+| Team | `/team` | Admin only. Invitation links (create, copy, revoke) |
+| Join | `/join#token=...` | Opens an invitation link: sign up or log in, then join the business |
 
 ### API Endpoints (`/api/v1/`)
 
@@ -82,6 +84,11 @@ Dark fintech SaaS interface (Stripe/Linear aesthetic). Run locally with `npm run
 | `GET`    | `/api/v1/tenants/{id}/members` | List members of a business |
 | `POST`   | `/api/v1/tenants/{id}/members` | Add a member by email |
 | `DELETE` | `/api/v1/tenants/{id}/members/{user_id}` | Remove a member |
+| `POST`   | `/api/v1/tenants/{id}/invitations` | Create an invitation link (admin only; token returned once) |
+| `GET`    | `/api/v1/tenants/{id}/invitations` | List invitations with status (admin only; never includes tokens) |
+| `DELETE` | `/api/v1/tenants/{id}/invitations/{invitation_id}` | Revoke a pending invitation (admin only) |
+| `POST`   | `/api/v1/invitations/preview` | Public. Body `{"token": ...}` → business name, role, expiry |
+| `POST`   | `/api/v1/invitations/accept` | Login required, no `X-Tenant-ID`. Body `{"token": ...}` → joins the business |
 
 Every `/api/v1/receipts/*` route requires a Supabase JWT **and** an `X-Tenant-ID`
 header; `POST` / `GET /api/v1/tenants` require only the JWT.
@@ -122,6 +129,19 @@ Each membership has one of two roles:
 - A business must always keep at least one admin.
 - Change a role with `PATCH /api/v1/tenants/{tenant_id}/members/{user_id}` and
   body `{"role": "admin"}` or `{"role": "member"}` (admin only).
+
+### Inviting people
+
+Admins use the **Team** page to create an invitation link for someone who may
+not have an account yet.
+
+- The link is shown once, when you create it. It works a single time and
+  expires after 7 days. Pending links can be revoked from the Team page.
+- The link is **not tied to an email address**: whoever has it can use it once,
+  so share it privately.
+- No emails are sent yet; copy the link and send it yourself.
+- The token travels in the URL fragment (`/join#token=...`) and in request
+  bodies, never in a URL path or query, so it stays out of server logs.
 
 ### Editing policies
 
