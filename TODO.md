@@ -34,7 +34,7 @@
 - [ ] Add data visualization (charts, heatmaps)
 
 ### Month 3: Production Features
-- [ ] Add user authentication (JWT)
+- [x] Add user authentication (JWT)
 - [ ] Build fraud review workflow UI
 - [ ] Implement export functionality (CSV, PDF)
 - [ ] Add API rate limiting
@@ -54,7 +54,7 @@
 ## Ideas for Future (Post-Graduation)
 - [ ] Mobile app (React Native)
 - [ ] Integration with Expensify/Concur APIs
-- [ ] Multi-tenant support (company accounts)
+- [x] Multi-tenant support (company accounts)
 - [ ] Real-time fraud alerts (email/Slack)
 - [ ] Custom ML model training on company data
 - [ ] Notion/Linear export integration
