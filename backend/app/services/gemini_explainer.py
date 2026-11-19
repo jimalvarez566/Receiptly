@@ -8,15 +8,14 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 
-_RECEIPT_REF_RE = re.compile(
-    r"\breceipts?\s*(?:\(\s*#\s*\d+\s*\)|#\s*\d+)|\(\s*#\s*\d+\s*\)|#\s*\d+",
-    re.IGNORECASE,
-)
+_PAREN_REF_RE = re.compile(r"\breceipt\s*\(\s*#\s*\d+\s*\)", re.IGNORECASE)
+_PLAIN_REF_RE = re.compile(r"\breceipt\s*#\s*\d+", re.IGNORECASE)
 
 
 def _redact_receipt_refs(text: str) -> str:
-    """Replace references to other receipts' numbers with 'another receipt'."""
-    return _RECEIPT_REF_RE.sub("another receipt", text)
+    """Hide other receipts' numbers from text that goes into the prompt."""
+    text = _PAREN_REF_RE.sub("receipt", text)
+    return _PLAIN_REF_RE.sub("another receipt", text)
 
 
 def _build_prompt(receipt, flags) -> str:
