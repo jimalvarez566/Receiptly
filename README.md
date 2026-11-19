@@ -237,6 +237,7 @@ npm run dev
 - Gemini Vision fallback for low-confidence OCR
 - Isolation Forest anomaly detection
 - Analytics dashboard (employee risk clustering, fraud trends)
+- Review workflow UI
 
 ## Project Docs
 
